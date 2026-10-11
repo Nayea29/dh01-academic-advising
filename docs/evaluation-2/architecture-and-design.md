@@ -2,26 +2,25 @@
 
 ## Architecture and Design Document
 
-**Estado:** Propuesta de diseño en elaboración.  
 **Institución:** Horizon University — Digital Horizon Initiative  
-**Documento:** Arquitectura y diseño de software.
+
 
 ## Índice del documento
 
-1. [Propósito y alcance del diseño](#1-propsito-y-alcance-del-diseo)
+1. [Propósito y alcance del diseño](#1-propósito-y-alcance-del-diseño)
 2. [Requisitos significativos y restricciones](#2-requisitos-significativos-y-restricciones)
-3. [Escenarios de calidad y drivers arquitectónicos](#3-escenarios-de-calidad-y-drivers-arquitectnicos)
-4. [Alternativas arquitectónicas y decisiones ADR](#4-alternativas-arquitectnicas-y-decisiones-adr)
-5. [Vistas arquitectónicas](#5-vistas-arquitectnicas)
-6. [Dominio datos y comportamiento](#6-dominio-datos-y-comportamiento)
+3. [Escenarios de calidad y factores arquitectónicos](#3-escenarios-de-calidad-y-factores-arquitectónicos)
+4. [Estrategia arquitectónica y decisiones de diseño](#4-estrategia-arquitectónica-y-decisiones-de-diseño)
+5. [Vistas arquitectónicas](#5-vistas-arquitectónicas)
+6. [Dominio, datos y comportamiento](#6-dominio-datos-y-comportamiento)
 7. [Interfaces y seguridad](#7-interfaces-y-seguridad)
 8. [Supuestos de despliegue](#8-supuestos-de-despliegue)
-9. [Validación riesgos y plan de trabajo](#9-validacin-riesgos-y-plan-de-trabajo)
-10. [Trazabilidad glosario y referencias](#10-trazabilidad-glosario-y-referencias)
+9. [Validación, riesgos y plan de trabajo](#9-validación-riesgos-y-plan-de-trabajo)
+10. [Trazabilidad, glosario y referencias](#10-trazabilidad-glosario-y-referencias)
 
 # 1. Propósito y alcance del diseño
 
-## 1.1 Introducción
+### 1.1 Introducción
 
 El proyecto DH-01 — Academic Advising Case Management System forma parte de la iniciativa Digital Horizon de Horizon University y tiene como propósito proponer una solución tecnológica para mejorar la gestión de solicitudes de asesoría académica dirigidas a estudiantes de pregrado.
 
@@ -33,7 +32,7 @@ El presente documento desarrolla la propuesta de arquitectura y diseño del sist
 
 Se busca explicar cómo se organizará el sistema, cuáles serán las responsabilidades de sus componentes, cómo interactuarán entre sí, de qué manera se administrará la información y qué mecanismos permitirán satisfacer los requisitos funcionales y de calidad establecidos.
 
-## 1.2 Propósito del documento
+### 1.2 Propósito del documento
 
 El propósito de este documento es presentar y justificar la arquitectura y el diseño propuestos para el Academic Advising Case Management System.
 
@@ -53,7 +52,7 @@ Específicamente, se pretende:
 
 El resultado esperado es una propuesta arquitectónica que proporcione una base consistente para el desarrollo, mantenimiento y evolución del sistema.
 
-## 1.3 Visión del sistema
+### 1.3 Visión del sistema
 
 El Academic Advising Case Management System se concibe como una aplicación web centralizada que permitirá gestionar las solicitudes de asesoría académica desde su creación hasta su resolución.
 
@@ -67,7 +66,7 @@ El sistema incorporará controles de acceso basados en roles, relación con los 
 
 La solución no pretende reemplazar los sistemas académicos institucionales existentes, sino proporcionar una herramienta especializada en la administración y trazabilidad del proceso de asesoría académica.
 
-## 1.4 Alcance del diseño arquitectónico
+### 1.4 Alcance del diseño arquitectónico
 
 La propuesta arquitectónica contempla las siguientes capacidades funcionales:
 
@@ -101,7 +100,7 @@ El proyecto no contempla:
 
 Estas exclusiones permiten concentrar el diseño en las necesidades centrales de gestión de casos y mantener la viabilidad del proyecto dentro de las restricciones de tiempo y recursos disponibles.
 
-## 1.5 Enfoque y resultados esperados del diseño
+### 1.5 Enfoque y resultados esperados del diseño
 
 El trabajo arquitectónico se concentra en definir una solución que responda a los requisitos del proyecto y permita evaluar su viabilidad técnica antes de avanzar hacia una implementación completa.
 
@@ -113,13 +112,12 @@ Las funcionalidades implementadas y los resultados de pruebas ejecutadas se docu
 
 El objetivo es establecer una base técnica consistente que facilite la implementación, reduzca incertidumbres, permita evaluar decisiones de diseño y mantenga una relación clara entre requisitos, arquitectura y validación.
 
----
 
-> Las siguientes secciones de diseño se desarrollarán y enlazarán desde este documento conforme se definan las decisiones técnicas y evidencias correspondientes.
+
 
 # 2. Requisitos significativos y restricciones
 
-## 2.1 Restricciones y condiciones del proyecto
+### 2.1 Restricciones y condiciones del proyecto
 
 La propuesta arquitectónica debe respetar las restricciones establecidas por Horizon University en el RFP DH-01.
 
@@ -137,7 +135,7 @@ La propuesta arquitectónica debe respetar las restricciones establecidas por Ho
 | C-10 | Mantener trazabilidad de cambios importantes de estado y asignación. | El diseño deberá contemplar registros persistentes de acciones relevantes. |
 | C-11 | Permitir futuras modificaciones de políticas. | Las reglas del sistema deberán organizarse para evolucionar sin cambios innecesarios en otros componentes. |
 
-## 2.2 Supuestos y aspectos pendientes de validación
+### 2.2 Supuestos y aspectos pendientes de validación
 
 El análisis del proyecto permitió identificar aspectos que todavía requieren una definición institucional más precisa.
 
@@ -176,7 +174,7 @@ Los atributos de calidad del Academic Advising Case Management System se han def
 
 El análisis considera principalmente la confidencialidad, la integridad del ciclo de vida de los casos, la trazabilidad histórica, el rendimiento de las consultas operacionales, la mantenibilidad, la usabilidad y la recuperación del servicio.
 
-Entre los escenarios de mayor prioridad se encuentran la prevención del acceso no autorizado a notas internas, la imposibilidad de resolver casos con actividades obligatorias pendientes y la conservación del historial durante las reasignaciones.
+Entre los escenarios de mayor prioridad se encuentran la prevención del acceso no autorizado a notas internas, La imposibilidad de resolver casos mientras existan actividades de seguimiento pendientes o solicitudes de información abiertas y la conservación del historial durante las reasignaciones.
 
 Estos escenarios tienen consecuencias directas sobre la arquitectura. La confidencialidad requiere controles de autorización en el backend; la integridad del ciclo de vida necesita validaciones de negocio y operaciones consistentes; y la trazabilidad exige registrar los cambios relevantes junto con las operaciones que los producen.
 
@@ -204,105 +202,131 @@ Los escenarios completos, sus medidas de respuesta y procedimientos de verificac
 
 ## 4. Estrategia arquitectónica y decisiones de diseño
 
-### 4.1 Evaluación de alternativas arquitectónicas
+### 4.1. Alternativas evaluadas
 
-La selección de la arquitectura del Academic Advising Case Management System considera los principales factores identificados: integridad del ciclo de vida, confidencialidad, trazabilidad, mantenibilidad y viabilidad operacional.
-
-Se analizaron tres alternativas principales: monolito tradicional sin separación modular explícita, monolito modular y arquitectura de microservicios.
+Se compararon tres alternativas considerando mantenibilidad, consistencia de datos, complejidad de desarrollo y recursos disponibles.
 
 | Alternativa | Ventajas | Limitaciones |
 |---|---|---|
-| Monolito tradicional | Implementación y despliegue relativamente sencillos. | Mayor riesgo de acoplamiento entre responsabilidades. |
-| Monolito modular | Separación lógica de responsabilidades, consistencia transaccional y operación manejable. | Los módulos comparten el ciclo de despliegue. |
-| Microservicios | Escalamiento y despliegue independiente de servicios. | Mayor complejidad de comunicación, consistencia y operación. |
+| Monolito tradicional | Implementación y despliegue sencillos. | Mayor riesgo de acoplamiento entre responsabilidades. |
+| Monolito modular | Separación lógica, transacciones locales y operación manejable. | Despliegue conjunto de los módulos. |
+| Microservicios | Escalado y despliegue independiente. | Mayor complejidad de comunicación, consistencia y operación. |
 
-### 4.2 Arquitectura seleccionada
+### 4.2. Arquitectura seleccionada
 
-Se propone utilizar una arquitectura de monolito modular, compuesta por una aplicación web, una API backend y una base de datos relacional.
+Se selecciona como propuesta un **monolito modular**, con una aplicación web React (C-WEB), un backend Node.js/Express (C-API), PostgreSQL (C-DB) y un servicio HTTP mock independiente para el SIS (X-SIS).
 
-El backend estará organizado en módulos responsables de autenticación y autorización, gestión de casos, clasificación y asignación, seguimiento, historial y reportes.
+Esta alternativa responde al alcance de DH-01 porque permite separar responsabilidades funcionales y mantener operaciones transaccionales dentro de un backend único. Al mismo tiempo, reduce la complejidad de infraestructura frente a una solución distribuida.
 
-Esta estrategia permite mantener límites claros entre responsabilidades relacionadas, sin introducir la complejidad de coordinación y despliegue de múltiples servicios independientes.
-
-La arquitectura favorece las operaciones transaccionales necesarias para preservar la integridad del ciclo de vida y conservar el historial de las acciones relevantes.
-
-### 4.3 Decisiones arquitectónicas principales
+### 4.3. Decisiones arquitectónicas
 
 | ADR | Decisión | Justificación principal |
 |---|---|---|
-| ADR-001 | Modular Monolith Architecture | Equilibrio entre separación de responsabilidades y simplicidad operacional. |
-| ADR-002 | Relational Database and Persistent Data Management | Relaciones estructuradas, integridad referencial y transacciones. |
-| ADR-003 | Controlled Case Lifecycle and Transactional Consistency | Prevención de transiciones inválidas y estados contradictorios. |
-| ADR-004 | Authentication and Resource-Based Authorization | Protección de información según rol y relación con los casos. |
-| ADR-005 | Persistent Audit Trail and Case History | Conservación de acciones y cambios de responsabilidad. |
+| ADR-001 | Monolito modular. | Equilibrio entre mantenibilidad y viabilidad operacional. |
+| ADR-002 | PostgreSQL. | Integridad referencial y transacciones consistentes. |
+| ADR-003 | Ciclo de vida controlado. | Prevención de estados inválidos y conflictos concurrentes. |
+| ADR-004 | Autenticación y autorización contextual. | Protección de información según identidad, rol y relación. |
+| ADR-005 | Auditoría persistente. | Conservación de operaciones e historial de responsabilidad. |
 
-### 4.4 Consecuencias y compromisos
+Las decisiones priorizan consistencia, seguridad y facilidad de evolución. Como compromiso, los módulos compartirán despliegue y deberán mantener contratos internos claros para evitar acoplamientos innecesarios.
 
-La estrategia seleccionada prioriza la mantenibilidad, la consistencia y una complejidad operacional compatible con las restricciones del proyecto.
-
-Como consecuencia, los módulos no dispondrán de despliegues independientes y compartirán la infraestructura principal del backend.
-
-El diseño también requiere mantener contratos internos claros, controlar las dependencias entre módulos y desarrollar pruebas sobre las operaciones críticas.
-
-Estas limitaciones se consideran aceptables para el alcance actual, dado que no existe una necesidad demostrada de adoptar una arquitectura distribuida.
-
-Las decisiones completas, sus alternativas, consecuencias y condiciones de reconsideración se documentan en el directorio [Architecture Decision Records](adr/README.md).
+**Documento de detalle:** [Architecture Decision Records](adr/README.md).
 
 ## 5. Vistas arquitectónicas
 
-La arquitectura del Academic Advising Case Management System se representa mediante un conjunto de vistas complementarias que permiten analizar los límites del sistema, sus principales responsabilidades, las relaciones entre sus componentes y las condiciones previstas de ejecución.
+La arquitectura se representa mediante vistas complementarias basadas en el enfoque C4, junto con una vista de despliegue.
 
-Se utilizará el enfoque C4 para documentar el contexto, los contenedores y los componentes principales, complementado con una vista de despliegue.
+| Vista | Propósito | Documento |
+|---|---|---|
+| Contexto — V-CTX | Identificar actores, límites y dependencias externas. | [System Context](views/system-context.md) |
+| Contenedores — V-CON | Mostrar C-WEB, C-API, C-DB y X-SIS y sus relaciones. | [Container View](views/container-view.md) |
+| Componentes — V-CMP | Describir los diez componentes lógicos CMP-01 a CMP-10 del backend. | [Component View](views/component-view.md) |
+| Despliegue — V-DEP | Representar nodos, procesos y conexiones propuestas. | [Deployment View](views/deployment-view.md) |
 
-### 5.1 Vista de contexto del sistema
+La vista de contexto diferencia las responsabilidades de DH-01 de los sistemas académicos institucionales. La vista de contenedores establece los límites tecnológicos, mientras que la de componentes detalla la separación interna del monolito modular.
 
-La vista de contexto identifica a los principales actores institucionales que interactúan con DH-01: Student, Academic Adviser, Program Coordinator, Advising Coordinator e IT Services.
+La vista de despliegue presenta cómo podrían ejecutarse estas responsabilidades en recursos limitados, sin asumir infraestructura institucional ya disponible.
 
-También establece las relaciones con los servicios externos de identidad institucional y Student Information System, cuya integración podrá representarse mediante mecanismos simulados.
+Los diagramas y las descripciones completas se encuentran en el [Índice de Vistas](views/README.md).
 
-DH-01 será responsable de administrar las solicitudes de asesoría, sus estados, asignaciones, seguimientos, recomendaciones e historial. La autenticación institucional y la administración de registros académicos oficiales permanecerán como responsabilidades externas.
+## 6. Dominio, datos y comportamiento
 
-Esta delimitación evita atribuir al sistema funciones que exceden su alcance y permite identificar las relaciones que deberán considerarse durante el diseño de interfaces y seguridad.
+El diseño utiliza `AdvisingCase` como entidad central, relacionada con estudiantes, clasificaciones, asignaciones, solicitudes de información, seguimientos, notas, recomendaciones y eventos de auditoría.
 
-El diagrama completo, las responsabilidades de los actores y las dependencias externas están documentados en [System Context View](views/system-context.md).
+PostgreSQL permitirá representar estas relaciones mediante restricciones e índices. Se propone mantener una única asignación vigente y conservar las asignaciones anteriores para reconstruir la historia del caso.
 
-# 6. Dominio, datos y comportamiento
+El ciclo de vida se organiza en siete estados, con transiciones controladas desde C-API. Para resolver un caso se requiere orientación registrada, ausencia de solicitudes de información abiertas y de seguimientos pendientes, además de un responsable autorizado y una versión vigente.
 
-Se definirán los conceptos principales —casos, actores, asignaciones, notas, recomendaciones, acciones de seguimiento e historial— junto con sus relaciones, restricciones y transiciones válidas. Se explicará especialmente la asignación de responsable y la prohibición de resolver un caso con acciones pendientes.
+Las operaciones críticas utilizarán transacciones, bloqueo del caso y validación de concurrencia. Los eventos obligatorios de auditoría formarán parte de la misma transacción que los cambios correspondientes.
 
-**Documento de detalle:** [Modelo de dominio y datos](design/domain-and-data.md) y [ciclo de vida e interacciones](design/lifecycle-and-runtime.md).
+El modelo también contempla una tabla técnica `SESSION` para persistir sesiones de autenticación, separada de las entidades del proceso académico.
 
-**Estado:** pendiente de desarrollo y revisión.
+**Documentos de detalle:** [Modelo de dominio y datos](design/domain-and-data.md) y [Ciclo de vida e interacciones](design/lifecycle-and-runtime.md).
 
-# 7. Interfaces y seguridad
+## 7. Interfaces y seguridad
 
-Se especificarán las interfaces principales, los contratos de entrada y salida, errores esperados y límites de confianza. Los permisos se evaluarán según el rol, la relación con el caso y la sensibilidad de los datos, evitando revelar notas internas a estudiantes.
+C-WEB se comunicará con C-API mediante contratos REST/JSON bajo `/api/v1`. El backend será responsable de validar las entradas, aplicar reglas de negocio y devolver respuestas acordes con el estado y los permisos del usuario.
 
-**Documento de detalle:** [Contratos de interfaces](design/interfaces.md) y [seguridad](design/security.md).
+La autenticación propuesta utiliza cuentas ficticias y sesiones opacas de servidor, persistidas en PostgreSQL. Se contemplan cookies protegidas, expiración, revocación y protección CSRF para operaciones de escritura.
 
-**Estado:** pendiente de desarrollo y revisión.
+La autorización será contextual: además del rol, considerará la relación vigente con el caso, el alcance académico y la sensibilidad de la información. Las notas internas estarán separadas de las recomendaciones visibles para estudiantes y los recursos anidados deberán comprobar su pertenencia al caso autorizado.
 
-# 8. Supuestos de despliegue
+Los contratos también contemplan errores de autenticación, autorización, recursos inexistentes, conflictos de versión y fallos de la integración simulada.
 
-Se describirán los componentes ejecutables, entornos, conexiones, dependencias institucionales y supuestos operacionales necesarios para ejecutar una solución accesible remotamente y mantenible con recursos limitados.
+**Documentos de detalle:** [Interfaces](design/interfaces.md) y [Seguridad](design/security.md).
+
+## 8. Supuestos de despliegue
+
+La propuesta contempla la ejecución de React, Node.js/Express, PostgreSQL y X-SIS como componentes con responsabilidades separadas. Estos podrán alojarse en un mismo equipo cuando los recursos disponibles lo permitan.
+
+Docker Compose se considera una opción para preparar entornos reproducibles. También se proponen HTTPS, configuración externa, restricciones de conectividad, almacenamiento persistente y procedimientos de respaldo.
+
+La capacidad efectiva de infraestructura y los mecanismos de recuperación deberán verificarse mediante pruebas. No se presume disponibilidad de servicios institucionales reales ni se promete alta disponibilidad.
 
 **Documento de detalle:** [Supuestos de despliegue](deployment-assumptions.md).
 
-**Estado:** pendiente de desarrollo y revisión.
+## 9. Validación, riesgos y plan de trabajo
 
-# 9. Validación, riesgos y plan de trabajo
+La estrategia de validación contempla pruebas funcionales, de seguridad, integración, API, transacciones y atributos de calidad.
 
-Se diseñarán pruebas de los riesgos arquitectónicos más importantes. Los resultados se registrarán solamente después de ejecutarlos, diferenciando evidencias obtenidas, pruebas pendientes y limitaciones conocidas. También se actualizarán prioridades y dependencias del proyecto.
+Se han definido **18 pruebas**, con prioridad para los controles de confidencialidad, integridad del ciclo de vida, concurrencia y auditoría. Las demás verifican asignación, persistencia, integración SIS, rendimiento, modificabilidad, usabilidad y recuperación.
 
-**Documento de detalle:** [Plan de pruebas](validation/test-plan.md), [hallazgos](validation/findings.md) y [estado del proyecto](project-status.md).
+Los principales riesgos identificados incluyen políticas institucionales sin confirmar, exposición de información interna, inconsistencias transaccionales, dificultades de despliegue y limitaciones de tiempo.
 
-**Estado:** pendiente de desarrollo y revisión.
+El trabajo posterior está organizado en un backlog de trece actividades y cinco incrementos propuestos, desde la base técnica hasta la evaluación de calidad.
 
-# 10. Trazabilidad, glosario y referencias
+**Estado de validación:** según la línea base documental revisada, el prototipo no dispone de implementación ejecutable identificada y no se han aportado resultados de pruebas reproducibles. Ningún atributo de calidad se declara demostrado.
 
-La trazabilidad conectará los requisitos existentes con decisiones, componentes, interfaces y pruebas. Los términos del dominio mantendrán una definición consistente; las referencias documentales identificarán las fuentes de los requisitos y del diseño.
+**Documentos de detalle:** [Plan de validación](validation/test-plan.md), [Resultados y hallazgos](validation/findings.md) y [Estado del proyecto](project-status.md).
 
-**Documento de detalle:** [Matriz de trazabilidad](traceability.md).
+## 10. Trazabilidad, glosario y referencias
 
-**Estado:** pendiente de desarrollo y revisión.
+### 10.1. Trazabilidad
 
+La [Matriz de Trazabilidad](traceability.md) relaciona requisitos funcionales, atributos de calidad, reglas de negocio, restricciones, drivers, ADR, componentes y pruebas previstas.
+
+Esta relación permite justificar las decisiones arquitectónicas y comprobar que cada necesidad tenga una respuesta de diseño y una forma propuesta de verificación.
+
+La cobertura actual es documental; no equivale a una implementación ni a pruebas aprobadas.
+
+### 10.2. Glosario
+
+| Término | Definición |
+|---|---|
+| Case | Solicitud de asesoría académica con estado y registros asociados. |
+| Triage | Evaluación y clasificación previa a la asignación inicial. |
+| Follow-up | Acción de seguimiento interna o dirigida al estudiante. |
+| Reassignment | Cambio autorizado de responsable que conserva el historial. |
+| Overdue | Indicador de retraso cuya política definitiva está pendiente. |
+| AD | Factor arquitectónico derivado de una necesidad significativa. |
+| ADR | Registro que documenta y justifica una decisión arquitectónica. |
+| QS | Escenario de calidad con respuesta y criterios observables. |
+| Evidencia | Registro reproducible de una ejecución, asociado a una versión y un entorno. |
+
+### 10.3. Conclusión
+
+La arquitectura propuesta para DH-01 busca responder a las necesidades de gestión de asesoría académica mediante un monolito modular, persistencia relacional, control de acceso contextual y operaciones auditables.
+
+El diseño mantiene una relación trazable entre requisitos, decisiones, componentes y validación prevista. Las políticas institucionales abiertas, la implementación y la comprobación empírica permanecen pendientes.
+
+Esta documentación proporciona una base estructurada para desarrollar, evaluar y evolucionar el sistema sin presentar sus propuestas como funcionalidades ya implementadas.

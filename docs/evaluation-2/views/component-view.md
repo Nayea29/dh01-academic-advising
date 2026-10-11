@@ -1,73 +1,78 @@
 # DH-01 — Vista de Componentes del Backend
 
-**Proyecto:** Academic Advising Case Management System  
-**ID de la vista:** V-CMP  
-**Estilo de modelado:** C4 Model — Component Level  
+**ID de la vista:** V-COMP  
+**Modelo:** C4 Model — Component Level  
 **Contenedor analizado:** C-API — Backend API  
-**Decisión arquitectónica principal:** ADR-001 — Modular Monolith Architecture  
-**Decisiones relacionadas:** ADR-002, ADR-003, ADR-004 y ADR-005  
-**Estado:** Diseño propuesto
+**Decisión principal:** ADR-001 — Modular Monolith Architecture  
+**Decisiones relacionadas:** ADR-002, ADR-003, ADR-004 y ADR-005
 
-## 1. Propósito
+## 1. Propósito y organización del backend
 
-La vista de componentes describe la organización interna del Backend API (`C-API`) del Academic Advising Case Management System (DH-01).
+Esta vista describe la organización interna del Backend API (`C-API`) del Academic Advising Case Management System (DH-01).
 
-Su objetivo es identificar las responsabilidades de los principales componentes de software, sus dependencias y las reglas que gobiernan su colaboración.
+Su objetivo es identificar los principales componentes de software, sus responsabilidades, dependencias y mecanismos de colaboración para gestionar las solicitudes de asesoría académica.
 
-A diferencia de la vista de contenedores, que representa las unidades ejecutables y los almacenes de datos, esta vista se concentra en la estructura lógica de una aplicación específica: el backend.
+A diferencia de la vista de contenedores, que muestra las unidades de ejecución y los almacenes de datos, esta vista se concentra en la estructura lógica del backend.
 
-El diseño propuesto adopta una arquitectura de monolito modular. Por esta razón, los componentes descritos formarán parte de una misma aplicación desplegable, aunque estarán organizados mediante límites funcionales.
+La arquitectura seleccionada es un **monolito modular**. Los componentes se organizarán mediante límites funcionales definidos, pero formarán parte de una misma aplicación desplegable desarrollada con Node.js y Express.
 
-Esta separación busca facilitar el mantenimiento, la comprensión del código, la protección de recursos y la consistencia de las operaciones relacionadas con el ciclo de vida de los casos.
+La separación de responsabilidades busca facilitar el mantenimiento, la seguridad, la consistencia del ciclo de vida y la trazabilidad de las operaciones.
 
-La vista también establece cómo los componentes internos interactuarán con PostgreSQL y con el simulador del Student Information System (SIS), sin atribuir a estos elementos responsabilidades que pertenezcan al dominio de asesoría académica.
+Los componentes se agrupan conceptualmente de la siguiente manera:
+
+| Categoría | Componentes | Responsabilidad |
+|---|---|---|
+| Entrada | CMP-01 — API Controllers | Recibir solicitudes y producir respuestas HTTP. |
+| Seguridad | CMP-02 — Authentication & Authorization | Identificar usuarios y aplicar políticas de acceso. |
+| Dominio | CMP-03, CMP-04, CMP-05 y CMP-06 | Ejecutar las reglas del proceso de asesoría. |
+| Consultas y auditoría | CMP-07 y CMP-08 | Proporcionar información operacional y trazabilidad. |
+| Infraestructura | CMP-09 y CMP-10 | Gestionar persistencia e integración externa simulada. |
+
+Estas categorías representan una separación lógica. No constituyen aplicaciones desplegables independientes.
 
 ## 2. Diagrama de componentes
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "15px", "lineColor": "#94A3B8", "edgeLabelBackground": "#334155"}, "flowchart": {"nodeSpacing": 45, "rankSpacing": 70, "htmlLabels": true}}}%%
 flowchart TB
-    WEB["`**C-WEB: Aplicación Web**
-    React · Cliente de la API`"]
+    WEB["C-WEB: Aplicación Web
+    React — Cliente de la API"]
 
     subgraph API["C-API — Backend API (Monolito Modular)"]
         direction TB
 
-        HTTP["`**API Controllers**
-        Endpoints REST, validación
-        y respuestas HTTP`"]
+        HTTP["CMP-01: API Controllers
+        Endpoints REST y respuestas HTTP"]
 
-        AUTH["`**Authentication & Authorization**
-        Identidad, sesiones
-        y políticas de acceso`"]
+        AUTH["CMP-02: Authentication & Authorization
+        Identidad, sesiones y políticas de acceso"]
 
-        subgraph DOMAIN["Módulos de negocio"]
+        subgraph DOMAIN["Componentes de negocio"]
             direction LR
 
-            CASE["`**Case Management**
-            Casos y ciclo de vida`"]
+            CASE["CMP-03: Case Management
+            Casos y ciclo de vida"]
 
-            TRIAGE["`**Triage & Assignment**
-            Clasificación y responsables`"]
+            TRIAGE["CMP-04: Triage & Assignment
+            Clasificación y responsables"]
 
-            FOLLOW["`**Follow-up & Resolution**
-            Seguimiento y resolución`"]
+            FOLLOW["CMP-05: Follow-up & Resolution
+            Seguimiento y resolución"]
 
-            NOTES["`**Notes & Confidentiality**
-            Notas y visibilidad`"]
+            NOTES["CMP-06: Notes & Confidentiality
+            Notas y visibilidad"]
         end
 
-        REPORT["`**Reporting & Queries**
-        Consultas operacionales`"]
+        REPORT["CMP-07: Reporting & Queries
+        Consultas operacionales"]
 
-        AUDIT["`**Audit & History**
-        Eventos e historial`"]
+        AUDIT["CMP-08: Audit & History
+        Eventos e historial"]
 
-        REPO["`**Persistence Layer**
-        Repositorios y transacciones`"]
+        REPO["CMP-09: Persistence Layer
+        Repositorios y transacciones"]
 
-        ADAPTER["`**SIS Integration Adapter**
-        Consulta de datos sintéticos`"]
+        ADAPTER["CMP-10: SIS Integration Adapter
+        Consulta de datos sintéticos"]
 
         HTTP --> AUTH
         HTTP --> CASE
@@ -97,11 +102,11 @@ flowchart TB
         CASE -.-> ADAPTER
     end
 
-    DB[("`**C-DB: PostgreSQL**
-    Datos persistentes de DH-01`")]
+    DB[("C-DB: PostgreSQL
+    Datos persistentes de DH-01")]
 
-    SIS["`**X-SIS: SIS simulado**
-    Servicio mock externo`"]
+    SIS["X-SIS: SIS simulado
+    Servicio mock externo"]
 
     WEB -->|"HTTPS / REST / JSON"| HTTP
     REPO -->|"SQL transaccional"| DB
@@ -119,602 +124,282 @@ flowchart TB
 
     style API fill:#17212E,stroke:#64748B,color:#E2E8F0,stroke-width:2px
     style DOMAIN fill:#102E32,stroke:#0D9488,color:#E2E8F0
-
-    linkStyle default stroke:#94A3B8,stroke-width:2px
 ```
 
-**Figura V-CMP.** Vista lógica de componentes del Backend API de DH-01.
+**Figura V-COMP.** Vista lógica de los componentes del Backend API de DH-01.
 
-El diagrama presenta diez componentes propuestos dentro del contenedor `C-API`.
+El diagrama presenta diez componentes internos de `C-API`. Los elementos `C-WEB`, `C-DB` y `X-SIS` aparecen como dependencias externas al contenedor analizado.
 
-`C-WEB`, `C-DB` y `X-SIS` aparecen como elementos externos al contenedor analizado para proporcionar contexto sobre sus interacciones.
+Las flechas representan colaboraciones y dependencias funcionales, no necesariamente el orden cronológico de ejecución.
 
-**Convenciones:**
+**Consideraciones del diagrama:**
 
-- Azul: interfaz de entrada o aplicación cliente.
-- Morado: autenticación y autorización.
-- Verde azulado: componentes de negocio.
-- Gris azulado: componentes de soporte, persistencia o dependencias.
-- Líneas continuas: dependencias o interacciones internas previstas.
-- Líneas punteadas: interacción con la integración simulada del SIS.
+- La autorización es transversal. Aunque no se dibujen todas las conexiones con CMP-02, cada operación protegida deberá verificar sus permisos.
+- Los componentes de negocio accederán a PostgreSQL mediante CMP-09 — Persistence Layer.
+- Los cambios de negocio y sus eventos obligatorios de auditoría deberán compartir una misma transacción.
+- La colaboración entre Notes & Confidentiality y Audit & History no implica copiar el contenido confidencial de las notas al historial.
+- El acceso al SIS simulado se realizará exclusivamente mediante CMP-10 — SIS Integration Adapter.
 
-Las flechas representan dependencias funcionales entre componentes y no necesariamente el orden cronológico de ejecución.
+## 3. Componentes y responsabilidades
 
-**Nota de seguridad:** `Authentication & Authorization` proporciona controles transversales a las operaciones protegidas. La validación de identidad se realiza al ingresar a la API, mientras que la autorización específica sobre casos, notas y operaciones debe verificarse mediante las políticas correspondientes en la capa de aplicación. No se dibuja una flecha desde cada componente hacia el servicio de autorización para evitar sobrecargar el diagrama.
+### 3.1. CMP-01 — API Controllers
 
-**Nota de persistencia:** los componentes de negocio acceden a PostgreSQL a través de `Persistence Layer`. Las operaciones que requieren modificaciones relacionadas y auditoría obligatoria deberán coordinarse mediante una misma transacción.
+**Responsabilidad principal:** exponer las operaciones del backend mediante una interfaz HTTP.
 
-**Nota de auditoría:** la conexión `Notes & Confidentiality → Audit & History` representa el registro de cambios relevantes sobre las notas, como su creación o modificación autorizada. No implica transferir ni duplicar automáticamente el contenido confidencial de las notas en el historial de auditoría.
+Este componente constituye el punto de entrada de las solicitudes provenientes de `C-WEB`.
 
-## 3. Organización general del backend
-
-El backend seguirá un enfoque de separación por responsabilidades.
-
-Los componentes se agrupan conceptualmente en cuatro categorías:
-
-| Categoría | Componentes | Responsabilidad |
-|---|---|---|
-| Entrada | API Controllers | Recibir solicitudes y producir respuestas. |
-| Seguridad | Authentication & Authorization | Identificar usuarios y evaluar permisos. |
-| Dominio de negocio | Case Management, Triage & Assignment, Follow-up & Resolution, Notes & Confidentiality | Aplicar las reglas del proceso de asesoría. |
-| Soporte e infraestructura | Reporting & Queries, Audit & History, Persistence Layer, SIS Integration Adapter | Proporcionar consultas, trazabilidad, persistencia e integración. |
-
-Estas categorías no representan aplicaciones desplegables separadas.
-
-El backend se ejecutará como un monolito modular, pero cada módulo deberá contar con responsabilidades identificables e interfaces internas claras.
-
-### 3.1. Principios de diseño
-
-La organización de los componentes se fundamentará en los siguientes principios:
-
-- Los controladores HTTP no deberán contener reglas de negocio complejas.
-- Las reglas de autorización se verificarán en el servidor.
-- Las operaciones del dominio deberán mantener la consistencia del estado del caso.
-- La persistencia se accederá mediante interfaces definidas.
-- Los registros de auditoría obligatorios deberán conservarse junto con las operaciones que los generan.
-- Los componentes de negocio no deberán depender directamente de detalles del SIS simulado.
-- Las dependencias entre módulos deberán evitar relaciones circulares.
-- Las decisiones funcionales deberán ser comprobables mediante pruebas.
-
-Estos principios permitirán mantener un diseño modular sin introducir la complejidad de servicios distribuidos.
-
-### 3.2. Coordinación de operaciones
-
-Los componentes podrán colaborar para ejecutar una misma operación de negocio.
-
-Por ejemplo, una reasignación requiere la intervención de `Triage & Assignment`, `Case Management`, `Persistence Layer` y `Audit & History`.
-
-Esto no significa que cada componente ejecute una transacción independiente.
-
-La operación de aplicación que coordine la reasignación deberá establecer la unidad transaccional y garantizar que la modificación del responsable y el evento obligatorio de auditoría se confirmen juntos.
-
-Esta coordinación evita registros inconsistentes y mantiene la trazabilidad de las operaciones.
-
-## 4. Componente CMP-01 — API Controllers
-
-**Identificador:** CMP-01  
-**Nombre:** API Controllers  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Exponer las operaciones del backend mediante una interfaz HTTP.
-
-### 4.1. Descripción
-
-Los controladores constituyen el punto de entrada para las solicitudes provenientes de `C-WEB`.
-
-Su función será recibir peticiones, interpretar los parámetros, aplicar validaciones de formato y delegar las operaciones a los componentes correspondientes.
-
-No deberán decidir por sí mismos las transiciones válidas del ciclo de vida ni implementar directamente las reglas de asignación de casos.
-
-### 4.2. Responsabilidades
+Sus responsabilidades incluyen:
 
 - Recibir solicitudes HTTP.
-- Identificar la operación solicitada.
-- Validar parámetros y estructuras de entrada.
+- Interpretar parámetros y estructuras de entrada.
+- Validar formatos y datos básicos.
 - Obtener el contexto de autenticación.
-- Invocar los servicios correspondientes.
-- Transformar resultados en respuestas JSON.
-- Aplicar códigos de estado HTTP consistentes.
-- Gestionar errores sin exponer información confidencial.
+- Delegar las operaciones a los servicios correspondientes.
+- Transformar los resultados en respuestas JSON.
+- Utilizar códigos de estado HTTP consistentes.
+- Manejar errores sin revelar información confidencial.
 
-### 4.3. Ejemplos de operaciones
+Los controladores expondrán operaciones relacionadas con autenticación, casos, asignaciones, seguimientos, notas, recomendaciones y consultas operacionales.
 
-Se contemplan grupos de endpoints relacionados con:
+**Restricción:** no deberán implementar directamente las reglas complejas del dominio ni acceder a las tablas de PostgreSQL para ejecutar lógica de negocio.
 
-- Autenticación.
-- Solicitudes y casos.
-- Asignaciones.
-- Seguimientos.
-- Notas y recomendaciones.
-- Consultas operacionales.
+Los contratos detallados se encuentran en [API Contracts](../design/interfaces.md).
 
-La definición exacta de rutas, parámetros y respuestas se desarrollará en `design/interfaces.md`.
+### 3.2. CMP-02 — Authentication & Authorization
 
-### 4.4. Restricciones
+**Responsabilidad principal:** verificar la identidad de los usuarios y controlar el acceso a los recursos del sistema.
 
-Los controladores no deberán acceder directamente a las tablas de PostgreSQL para ejecutar lógica de negocio.
+Este componente implementará la estrategia seleccionada en ADR-004.
 
-Su responsabilidad principal será coordinar la entrada y salida de las operaciones, manteniendo separada la lógica del dominio.
+La autenticación utilizará cuentas ficticias y sesiones opacas administradas por el servidor. Las sesiones estarán asociadas a registros persistentes en PostgreSQL y se entregarán al navegador mediante cookies con atributos de seguridad.
 
-Tampoco deberán depender exclusivamente de validaciones realizadas en el navegador.
+Sus responsabilidades incluyen:
 
-## 5. Componente CMP-02 — Authentication & Authorization
-
-**Identificador:** CMP-02  
-**Nombre:** Authentication & Authorization  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Verificar identidades y controlar el acceso a los recursos.
-
-### 5.1. Descripción
-
-Este componente implementará la estrategia definida en ADR-004.
-
-La autenticación se realizará mediante usuarios ficticios almacenados y gestionados para el prototipo.
-
-No se contempla una integración real con el proveedor institucional de identidad de Horizon University.
-
-El componente también proporcionará las verificaciones de autorización necesarias para determinar qué operaciones puede ejecutar cada usuario.
-
-### 5.2. Autenticación
-
-La autenticación deberá permitir:
-
-- Validar credenciales de prueba.
+- Verificar credenciales mediante hashes seguros.
+- Gestionar la creación, expiración y revocación de sesiones.
 - Identificar al usuario autenticado.
-- Verificar el estado de su sesión.
-- Rechazar credenciales inválidas o expiradas.
-- Mantener protegidos los datos de autenticación.
+- Aplicar protección CSRF a las operaciones correspondientes.
+- Evaluar los permisos de acuerdo con el rol y el recurso solicitado.
+- Rechazar accesos y modificaciones no autorizadas.
+- Evitar la exposición de secretos y datos confidenciales.
 
-Las contraseñas deberán almacenarse mediante un algoritmo de hash seguro.
-
-La configuración concreta de sesiones o tokens se establecerá en el documento de seguridad.
-
-### 5.3. Autorización
-
-Las decisiones de acceso deberán considerar:
+La autorización considerará:
 
 - Identidad autenticada.
-- Rol del usuario.
+- Rol institucional.
 - Relación con el caso.
 - Asignación vigente.
-- Programa o alcance autorizado.
+- Programa o ámbito autorizado.
 - Sensibilidad de la información.
 - Operación solicitada.
 
-Por ejemplo, un Academic Adviser podrá tener autorización para gestionar sus casos asignados, pero no necesariamente para consultar notas internas de casos ajenos.
+Por ejemplo, un Academic Adviser podrá gestionar sus casos asignados, pero no tendrá acceso automático a las notas internas de todos los casos de la universidad.
 
-### 5.4. Separación de responsabilidades
+La autenticación verifica quién es el usuario, mientras que la autorización determina qué puede hacer.
 
-La autenticación verificará quién es el usuario.
+Ambas responsabilidades deberán mantenerse diferenciadas.
 
-La autorización determinará qué puede hacer ese usuario.
+### 3.3. CMP-03 — Case Management
 
-Ambas responsabilidades estarán relacionadas, pero deberán mantenerse diferenciadas para facilitar su evolución.
+**Responsabilidad principal:** administrar los casos académicos y proteger la integridad de su ciclo de vida.
 
-Las verificaciones de autorización deberán estar disponibles para los módulos de negocio que procesen operaciones protegidas.
+Case Management constituye el componente central del dominio de DH-01.
 
-No será suficiente comprobar la identidad una sola vez si la operación requiere conocer la relación del usuario con un recurso determinado.
-
-### 5.5. Comportamiento ante accesos no autorizados
-
-Cuando una operación no esté permitida:
-
-- No deberá ejecutarse la modificación solicitada.
-- No deberán devolverse campos confidenciales.
-- Deberá utilizarse una respuesta de error apropiada.
-- Podrá registrarse el evento de seguridad pertinente sin almacenar secretos.
-
-La interfaz web podrá ocultar funcionalidades, pero no sustituirá estas verificaciones.
-
-## 6. Componente CMP-03 — Case Management
-
-**Identificador:** CMP-03  
-**Nombre:** Case Management  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Gestionar los casos y proteger la integridad de su ciclo de vida.
-
-### 6.1. Descripción
-
-Case Management será el componente central del dominio de DH-01.
-
-Administrará la creación y recuperación de casos, así como las operaciones generales necesarias para mantener su información consistente.
-
-También coordinará las reglas de transición entre estados, en colaboración con los demás componentes del dominio.
-
-### 6.2. Responsabilidades
+Sus responsabilidades incluyen:
 
 - Crear solicitudes de asesoría.
 - Crear casos a partir de referencias autorizadas.
-- Consultar información de casos.
-- Actualizar datos permitidos.
-- Validar operaciones según el estado del caso.
+- Consultar y actualizar información permitida.
+- Mantener la relación entre casos y estudiantes.
+- Aplicar las reglas generales de transición.
 - Coordinar cambios de estado.
-- Mantener la relación entre el caso y el estudiante.
-- Solicitar el registro de eventos de auditoría cuando corresponda.
+- Colaborar con los componentes de asignación, seguimiento y auditoría.
 
-### 6.3. Estados del caso
+El ciclo de vida contempla siete estados:
 
-El modelo inicial contempla los siguientes estados:
-
-| Estado | Significado |
+| Estado | Descripción |
 |---|---|
-| NEW | Caso registrado y pendiente de revisión inicial. |
-| UNDER_TRIAGE | Caso en clasificación o evaluación inicial. |
-| ASSIGNED | Caso asignado a un Academic Adviser. |
-| IN_PROGRESS | Caso en atención activa. |
-| WAITING_FOR_INFORMATION | Caso pendiente de información necesaria. |
-| FOLLOW_UP | Caso en etapa de seguimiento. |
-| RESOLVED | Caso resuelto según los criterios establecidos. |
+| `NEW` | Caso registrado, pendiente de revisión inicial. |
+| `UNDER_TRIAGE` | Caso en proceso de clasificación. |
+| `ASSIGNED` | Caso asignado a un Academic Adviser. |
+| `IN_PROGRESS` | Caso en atención activa. |
+| `WAITING_FOR_INFORMATION` | Caso pendiente de información requerida. |
+| `FOLLOW_UP` | Caso en etapa de seguimiento. |
+| `RESOLVED` | Caso resuelto conforme a las reglas establecidas. |
 
-Las transiciones autorizadas entre estos estados deberán especificarse en `design/lifecycle-and-runtime.md`.
+Las transiciones deberán respetar las condiciones documentadas en [Lifecycle and Runtime](../design/lifecycle-and-runtime.md).
 
-No se asumirá que cualquier estado puede cambiar directamente a otro.
+Las invariantes principales incluyen:
 
-### 6.4. Invariantes del dominio
+- Cada caso tendrá un identificador único.
+- Cada caso estará asociado a un estudiante identificable.
+- Las transiciones deberán ser válidas.
+- Las asignaciones vigentes serán consistentes con su historial.
+- Las operaciones restringidas exigirán autorización.
+- Los cambios relevantes conservarán trazabilidad.
+- Ninguna operación se confirmará si sus modificaciones obligatorias quedan incompletas.
 
-Las operaciones deberán preservar, como mínimo, las siguientes condiciones:
+Case Management colaborará con los demás componentes mediante contratos internos que eviten dependencias circulares.
 
-- Todo caso tendrá un identificador único.
-- Todo caso deberá estar asociado a un estudiante identificable en el entorno de prueba.
-- Los cambios de estado deberán cumplir las reglas definidas.
-- Las asignaciones vigentes deberán ser consistentes con el historial de asignaciones.
-- Las operaciones restringidas requerirán autorización.
-- Los cambios relevantes deberán conservar trazabilidad.
-- No se considerará completada una operación si sus modificaciones obligatorias quedan parcialmente registradas.
+### 3.4. CMP-04 — Triage & Assignment
 
-Las reglas concretas se detallarán en los documentos de dominio y comportamiento.
+**Responsabilidad principal:** gestionar la clasificación, asignación y reasignación de casos.
 
-### 6.5. Colaboraciones
+Este componente administrará el proceso mediante el cual una solicitud es revisada, clasificada y asignada a un responsable autorizado.
 
-Case Management interactuará principalmente con:
+Sus responsabilidades incluyen:
 
-- Authentication & Authorization, para las verificaciones de acceso.
-- Triage & Assignment, para cambios de clasificación y responsabilidad.
-- Follow-up & Resolution, para los procesos de atención y resolución.
-- Notes & Confidentiality, para vincular información al caso.
-- Audit & History, para registrar acciones relevantes.
-- Persistence Layer, para almacenar y recuperar datos.
-- SIS Integration Adapter, cuando necesite contexto académico sintético.
-
-Estas colaboraciones deberán establecerse mediante contratos internos que eviten dependencias circulares.
-
-## 7. Componente CMP-04 — Triage & Assignment
-
-**Identificador:** CMP-04  
-**Nombre:** Triage & Assignment  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Gestionar la clasificación y responsabilidad de los casos.
-
-### 7.1. Descripción
-
-Este componente administrará los procesos mediante los cuales una solicitud se evalúa inicialmente y se asigna al personal autorizado.
-
-También permitirá la reasignación cuando las reglas del servicio lo permitan.
-
-La clasificación y asignación deberán ser consistentes con el estado del caso y con las responsabilidades de los usuarios.
-
-### 7.2. Responsabilidades
-
-- Iniciar o registrar el proceso de triage.
-- Registrar información de clasificación.
-- Identificar casos pendientes de asignación.
+- Iniciar el proceso de triage.
+- Registrar clasificaciones.
+- Identificar solicitudes pendientes de asignación.
 - Asignar responsables autorizados.
 - Procesar reasignaciones.
 - Consultar el responsable vigente.
-- Mantener la trazabilidad de cambios de responsabilidad.
-- Validar que el usuario solicitante tenga permisos para efectuar la operación.
+- Conservar el historial de responsabilidad.
+- Verificar los permisos aplicables.
 
-### 7.3. Reasignación
+La asignación inicial requerirá una clasificación válida.
 
-Una reasignación deberá ejecutarse de manera consistente.
+Las reasignaciones deberán coordinar el cambio del responsable vigente con el registro histórico correspondiente.
 
-El flujo esperado incluirá:
+Una operación de reasignación deberá verificar la autorización, comprobar el estado del caso, validar el nuevo responsable y actualizar la información dentro de una transacción.
 
-1. Verificar la identidad y autorización del solicitante.
-2. Identificar el caso.
-3. Comprobar que la operación es válida.
-4. Validar el nuevo responsable.
-5. Actualizar la asignación vigente.
-6. Registrar el evento de reasignación.
-7. Confirmar la transacción.
+El evento de auditoría conservará, según corresponda, el responsable anterior, el nuevo responsable, el actor que ejecutó el cambio, la fecha y su motivo.
 
-Si falla una operación obligatoria, deberá evitarse que la asignación quede parcialmente modificada.
+**Restricción:** ningún Academic Adviser podrá reasignar libremente sus casos por el simple hecho de tener ese rol. La operación dependerá de las políticas institucionales definidas.
 
-### 7.4. Relación con auditoría
+### 3.5. CMP-05 — Follow-up & Resolution
 
-Toda reasignación relevante deberá permitir identificar:
+**Responsabilidad principal:** administrar las actividades de seguimiento, las recomendaciones y la resolución de casos.
 
-- Caso afectado.
-- Responsable anterior.
-- Nuevo responsable.
-- Usuario que ejecutó el cambio.
-- Fecha y hora del evento.
-- Motivo, cuando sea requerido por las reglas institucionales.
+Este componente gestionará las acciones realizadas durante la atención de una solicitud académica.
 
-Estos registros permitirán reconstruir el historial de responsabilidad de un caso.
+Sus responsabilidades incluyen:
 
-### 7.5. Restricciones
-
-La política exacta de delegación, asignación y reasignación deberá respetar los permisos institucionales definidos para los stakeholders.
-
-No se asumirá que cualquier Academic Adviser puede reasignar libremente sus casos.
-
-## 8. Componente CMP-05 — Follow-up & Resolution
-
-**Identificador:** CMP-05  
-**Nombre:** Follow-up & Resolution  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Administrar el seguimiento y la resolución de casos.
-
-### 8.1. Descripción
-
-Este componente gestionará las actividades que se producen durante la atención de una solicitud de asesoría.
-
-Permitirá registrar tareas de seguimiento, recomendaciones y resultados de atención, además de aplicar las condiciones establecidas para resolver un caso.
-
-### 8.2. Responsabilidades
-
-- Crear actividades de seguimiento.
-- Consultar actividades asociadas a un caso.
-- Registrar el avance de actividades.
-- Marcar actividades como completadas cuando corresponda.
+- Crear y consultar FollowUps.
+- Registrar avances de seguimiento.
+- Completar actividades autorizadas.
 - Registrar recomendaciones.
-- Controlar condiciones de resolución.
-- Coordinar cambios de estado relacionados con seguimiento y cierre.
-- Solicitar eventos de auditoría para operaciones relevantes.
+- Gestionar solicitudes de información adicional.
+- Evaluar las condiciones de resolución.
+- Coordinar transiciones relacionadas con seguimiento y cierre.
+- Solicitar los eventos de auditoría correspondientes.
 
-### 8.3. Consistencia con el ciclo de vida
+Conforme a ADR-003, la resolución de un caso requerirá:
 
-La existencia de actividades de seguimiento deberá considerarse al evaluar ciertas transiciones.
+1. Que el caso se encuentre en `IN_PROGRESS`.
+2. Que la operación sea ejecutada por el Academic Adviser vigente y autorizado.
+3. Que exista al menos una `Recommendation`.
+4. Que no existan `InformationRequest` con estado `OPEN`.
+5. Que todos los registros `FollowUp` estén en estado `COMPLETED`.
+6. Que la versión esperada del caso coincida con la vigente.
 
-Por ejemplo, la resolución de un caso podrá requerir verificar el cumplimiento de condiciones previamente establecidas.
+Estas condiciones deberán comprobarse dentro de una transacción coordinada con el bloqueo del caso.
 
-Las reglas definitivas deberán evitar que un caso se declare resuelto mediante una operación que contradiga su situación registrada.
+El componente colaborará con Case Management para validar las transiciones y con Notes & Confidentiality para respetar la visibilidad de recomendaciones y observaciones.
 
-No se asumirá automáticamente que todas las actividades deben completarse antes de resolver un caso; esta política deberá definirse y validarse en el diseño de comportamiento.
+### 3.6. CMP-06 — Notes & Confidentiality
 
-### 8.4. Recomendaciones
+**Responsabilidad principal:** administrar notas e información de los casos según su nivel de visibilidad.
 
-Las recomendaciones deberán distinguirse según su audiencia.
+Este componente permitirá separar información general, información destinada al estudiante y registros internos restringidos.
 
-Algunas podrán comunicarse al estudiante, mientras que otras observaciones permanecerán restringidas al personal autorizado.
+Se distinguen tres categorías:
 
-La clasificación y visibilidad de la información se coordinarán con Notes & Confidentiality.
+**Información general del caso:** identificación, clasificación, estado, fechas y responsabilidad, sujetos a los permisos correspondientes.
 
-## 9. Componente CMP-06 — Notes & Confidentiality
+**Información visible para estudiantes:** recomendaciones, solicitudes de información y actualizaciones expresamente autorizadas.
 
-**Identificador:** CMP-06  
-**Nombre:** Notes & Confidentiality  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Gestionar la información del caso según su nivel de visibilidad.
+**Información interna:** notas de asesoría, observaciones administrativas y contenido confidencial reservado al personal autorizado.
 
-### 9.1. Descripción
+Sus responsabilidades incluyen:
 
-DH-01 manejará información que puede contener observaciones internas del personal y comunicaciones destinadas al estudiante.
+- Crear y consultar notas vinculadas a los casos.
+- Clasificar la visibilidad de los registros.
+- Aplicar restricciones de acceso.
+- Construir respuestas con únicamente los campos permitidos.
+- Impedir que los estudiantes accedan a notas internas.
+- Registrar cambios relevantes mediante Audit & History.
+- Evitar la duplicación de contenido confidencial en los eventos de auditoría.
 
-Por esta razón, es necesario separar los datos según su finalidad y audiencia autorizada.
+La autorización deberá aplicarse en el backend. Ocultar un campo en la interfaz no será suficiente.
 
-Este componente administrará los registros asociados a los casos y colaborará con el mecanismo de autorización para proteger su contenido.
+El permiso para consultar un caso no implicará automáticamente autorización para leer todas sus notas o recursos relacionados.
 
-### 9.2. Categorías de información
+Cuando una nota requiera un evento obligatorio de auditoría, ambos registros deberán persistirse en una misma transacción.
 
-Se proponen al menos tres categorías:
+Los eventos podrán incluir el identificador de la nota, el caso, el actor, la fecha y el tipo de operación, sin copiar automáticamente el texto confidencial.
 
-**Información general del caso**
+### 3.7. CMP-07 — Reporting & Queries
 
-Incluye datos de identificación, clasificación, estado y responsabilidad sujetos a los permisos aplicables.
+**Responsabilidad principal:** proporcionar consultas y reportes operacionales autorizados.
 
-**Información visible para estudiantes**
+Este componente ofrecerá información necesaria para supervisar el servicio de asesoría académica.
 
-Incluye recomendaciones y actualizaciones destinadas expresamente al Student.
+Sus responsabilidades incluyen:
 
-**Información interna**
-
-Incluye notas y observaciones restringidas al personal autorizado.
-
-### 9.3. Responsabilidades
-
-- Registrar notas vinculadas a casos.
-- Diferenciar notas internas de información visible para estudiantes.
-- Consultar registros según el permiso del solicitante.
-- Aplicar restricciones de visibilidad.
-- Evitar incluir notas internas en respuestas destinadas al Student.
-- Registrar mediante Audit & History los cambios relevantes que requieran trazabilidad.
-- Evitar la duplicación innecesaria de información confidencial en los eventos de auditoría.
-
-### 9.4. Protección de respuestas
-
-La confidencialidad no deberá depender únicamente de ocultar elementos de la interfaz.
-
-El backend deberá construir respuestas que incluyan exclusivamente los campos autorizados.
-
-Por ejemplo, una respuesta destinada a un Student no deberá incorporar notas internas aunque la interfaz no tenga un componente visual para mostrarlas.
-
-La implementación deberá considerar representaciones o contratos diferenciados cuando sea necesario.
-
-### 9.5. Condiciones de acceso
-
-El permiso para consultar un caso no implicará necesariamente autorización para acceder a todas sus notas.
-
-La evaluación deberá considerar la relación del usuario con el caso y la categoría de información.
-
-Esta distinción responde al escenario QS-01 y a ADR-004.
-
-### 9.6. Relación con Audit & History
-
-Notes & Confidentiality colaborará con Audit & History para registrar las acciones relevantes sobre las notas asociadas a un caso.
-
-Entre los eventos propuestos se encuentran:
-
-- Creación de una nota.
-- Modificación autorizada de una nota, cuando esté permitida.
-- Cambio de clasificación o visibilidad, cuando esté permitido.
-- Otras acciones identificadas como auditables por la política correspondiente.
-
-Por ejemplo, cuando un Academic Adviser registra una nota interna, el sistema deberá permitir conocer quién realizó la acción, a qué caso pertenece y cuándo ocurrió.
-
-El registro de auditoría podrá incluir el identificador de la nota y el tipo de operación, pero **no deberá duplicar automáticamente el texto confidencial de su contenido**.
-
-Esto reduce la exposición de información sensible y evita crear copias adicionales de datos que requieren protección especial.
-
-Las consultas de lectura no tendrán que generar necesariamente eventos de auditoría de negocio. El registro de accesos a información confidencial se definirá según las políticas de seguridad y trazabilidad aplicables.
-
-Cuando la creación o modificación de una nota requiera un registro de auditoría obligatorio, ambos registros deberán persistirse dentro de una misma transacción.
-
-Esta colaboración responde a ADR-005 y al escenario QS-03.
-
-## 10. Componente CMP-07 — Reporting & Queries
-
-**Identificador:** CMP-07  
-**Nombre:** Reporting & Queries  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Proporcionar consultas operacionales y reportes autorizados.
-
-### 10.1. Descripción
-
-Este componente ofrecerá información para supervisar el funcionamiento del servicio de asesoría.
-
-Su finalidad será facilitar la consulta del estado de los casos, la distribución del trabajo y las actividades pendientes, según las necesidades y permisos de los usuarios.
-
-### 10.2. Responsabilidades
-
-- Consultar casos mediante filtros autorizados.
-- Proporcionar información sobre casos abiertos y resueltos.
+- Consultar casos mediante filtros.
+- Obtener información sobre casos abiertos y resueltos.
 - Identificar actividades pendientes o retrasadas.
 - Consultar la distribución de casos por responsable.
-- Obtener indicadores operacionales.
+- Generar indicadores operacionales.
 - Aplicar paginación y ordenamiento.
-- Restringir el alcance de los resultados según el usuario.
+- Restringir los resultados según los permisos del usuario.
 
-### 10.3. Rendimiento
+Las consultas deberán diseñarse considerando el crecimiento de los datos y la necesidad de mantener tiempos de respuesta aceptables.
 
-Las consultas deberán diseñarse considerando el crecimiento del volumen de información.
+Se contemplan índices, filtros, consultas agregadas, paginación y límites de resultados.
 
-Se evaluará la necesidad de:
+La validación del rendimiento se relaciona con QS-04.
 
-- Índices en campos utilizados para filtrado.
-- Consultas agregadas.
-- Paginación de resultados.
-- Límites de respuesta.
-- Optimización de consultas frecuentes.
+Los reportes también estarán sujetos a autorización. Las consultas agregadas no deberán permitir acceder a información fuera del ámbito institucional del usuario.
 
-La validación del rendimiento utilizará datos sintéticos y criterios establecidos en QS-04.
+### 3.8. CMP-08 — Audit & History
 
-### 10.4. Seguridad
+**Responsabilidad principal:** conservar la trazabilidad de las operaciones relevantes del sistema.
 
-Los reportes también estarán sujetos a autorización.
+Este componente gestionará los eventos de negocio necesarios para reconstruir la evolución de los casos.
 
-Un usuario no deberá obtener información sobre casos fuera de su ámbito mediante consultas agregadas o filtros manipulados.
+Los eventos podrán incluir:
 
-Las políticas de acceso deberán aplicarse antes de entregar los resultados.
+- Creación de casos.
+- Cambios de estado.
+- Asignaciones y reasignaciones.
+- Actividades relevantes de seguimiento.
+- Resolución de casos.
+- Creación o modificación autorizada de notas.
+- Otras operaciones definidas como auditables.
 
-## 11. Componente CMP-08 — Audit & History
+Cada evento conservará la información necesaria para identificar la operación, el caso, el actor, la fecha y los cambios relevantes.
 
-**Identificador:** CMP-08  
-**Nombre:** Audit & History  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Conservar la trazabilidad de las acciones relevantes.
+**La auditoría de negocio será diferente del logging técnico.** Los registros de errores o diagnóstico no reemplazarán el historial institucional del caso.
 
-### 11.1. Descripción
+Los eventos no deberán contener contraseñas, tokens de sesión ni copias innecesarias de notas confidenciales.
 
-El sistema deberá permitir reconstruir eventos importantes relacionados con los casos.
+Cuando un evento sea obligatorio, deberá almacenarse dentro de la misma transacción que confirma el cambio de negocio.
 
-Este componente gestionará el registro de acciones de negocio que deban conservarse para fines de seguimiento, revisión y responsabilidad institucional.
+Por ejemplo, una reasignación no podrá confirmarse sin conservar el evento histórico exigido.
 
-Su objetivo es registrar eventos relevantes sin convertirse en una copia completa del contenido de los casos.
+El historial estará sujeto a controles de consulta, retención y protección frente a modificaciones no autorizadas, conforme a ADR-005.
 
-### 11.2. Eventos propuestos
+### 3.9. CMP-09 — Persistence Layer
 
-Los eventos relevantes podrán incluir:
+**Responsabilidad principal:** encapsular el acceso a PostgreSQL y coordinar la persistencia transaccional.
 
-- Creación de un caso.
-- Cambio de estado.
-- Asignación inicial.
-- Reasignación.
-- Registro de seguimiento.
-- Resolución.
-- Creación o modificación autorizada de notas relevantes.
-- Modificaciones relevantes de información.
-- Otras acciones definidas como auditables.
+Esta capa permitirá recuperar y almacenar información mediante interfaces definidas, sin exponer los detalles específicos de la base de datos a los componentes de negocio.
 
-La lista definitiva se establecerá de acuerdo con las reglas de negocio y las políticas institucionales aplicables.
+Sus responsabilidades incluyen:
 
-### 11.3. Información de los eventos
-
-Un registro de auditoría podrá contener:
-
-- Identificador del evento.
-- Identificador del caso relacionado.
-- Tipo de operación.
-- Identidad del actor.
-- Fecha y hora.
-- Identificador del recurso afectado.
-- Información mínima necesaria sobre el cambio.
-- Motivo, cuando sea pertinente.
-
-No deberán almacenarse contraseñas, tokens de sesión ni secretos dentro de los eventos de auditoría.
-
-Tampoco se deberá duplicar innecesariamente el contenido completo de notas internas o información académica confidencial.
-
-### 11.4. Atomicidad
-
-Cuando el registro de un evento sea indispensable para la validez y trazabilidad de una operación, la actualización del recurso y el evento deberán persistirse en una misma transacción.
-
-Por ejemplo, una reasignación no deberá quedar confirmada sin conservar el evento de cambio de responsable requerido.
-
-De manera similar, cuando una nota deba contar obligatoriamente con trazabilidad de creación, la nota y su evento deberán confirmarse juntos.
-
-Esta estrategia responde a ADR-005.
-
-### 11.5. Protección del historial
-
-Los eventos deberán protegerse contra modificaciones no autorizadas.
-
-Los mecanismos concretos para consulta, retención y corrección administrativa de registros deberán documentarse en el diseño detallado.
-
-La capacidad de soporte técnico no implicará automáticamente autorización para consultar información sensible contenida en el historial.
-
-### 11.6. Diferencia entre auditoría de negocio y registros técnicos
-
-Audit & History se enfocará principalmente en acciones de negocio que deban conservarse como parte de la trazabilidad institucional.
-
-Los registros técnicos de errores, solicitudes y diagnóstico podrán gestionarse mediante mecanismos separados.
-
-La existencia de registros técnicos no sustituirá los eventos de negocio necesarios para reconstruir la evolución de un caso.
-
-Tampoco deberá utilizarse el registro de auditoría para almacenar información sensible innecesaria.
-
-## 12. Componente CMP-09 — Persistence Layer
-
-**Identificador:** CMP-09  
-**Nombre:** Persistence Layer  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Gestionar el acceso persistente a PostgreSQL.
-
-### 12.1. Descripción
-
-La capa de persistencia encapsulará las operaciones de almacenamiento y recuperación de datos.
-
-Permitirá que los componentes de negocio utilicen interfaces de acceso sin depender directamente de detalles específicos de consultas SQL o del controlador de base de datos.
-
-La tecnología de implementación de esta capa se definirá posteriormente.
-
-### 12.2. Responsabilidades
-
-- Recuperar información de usuarios y casos.
-- Persistir solicitudes.
-- Almacenar notas y recomendaciones.
+- Consultar usuarios y sesiones.
+- Recuperar y almacenar casos.
 - Gestionar asignaciones.
-- Registrar actividades.
-- Guardar eventos de auditoría.
-- Ejecutar transacciones.
-- Aplicar operaciones de lectura y escritura.
+- Persistir notas y recomendaciones.
+- Registrar actividades de seguimiento.
+- Almacenar eventos de auditoría.
+- Ejecutar consultas y transacciones.
 - Propagar errores de persistencia de forma controlada.
 
-### 12.3. Repositorios propuestos
-
-El diseño podrá incorporar repositorios correspondientes a entidades o conjuntos de operaciones relacionadas.
-
-Entre ellos:
+La organización podrá utilizar repositorios como:
 
 - User Repository.
 - Case Repository.
@@ -723,409 +408,249 @@ Entre ellos:
 - Note Repository.
 - Audit Repository.
 
-La separación definitiva dependerá del modelo de dominio.
+Las operaciones relacionadas deberán compartir una unidad de trabajo transaccional cuando las reglas de negocio exijan atomicidad.
 
-### 12.4. Coordinación transaccional
+La estrategia seleccionada contempla bloqueo de la fila del caso, verificación de versión esperada y transacciones PostgreSQL para controlar modificaciones concurrentes.
 
-Las transacciones deberán coordinarse desde la operación de aplicación que necesita mantener consistencia entre componentes.
+Esto permitirá evitar pérdidas silenciosas de cambios, asignaciones inconsistentes y transiciones incompatibles.
 
-Esto permitirá que una reasignación y su evento de auditoría compartan una misma unidad de trabajo.
+### 3.10. CMP-10 — SIS Integration Adapter
 
-También permitirá conservar de manera atómica una nota y su evento de creación cuando la auditoría sea obligatoria.
+**Responsabilidad principal:** encapsular la comunicación entre DH-01 y el SIS simulado.
 
-No se deberán confirmar por separado cambios que las reglas de negocio consideren inseparables.
+Este componente establecerá el límite de integración con `X-SIS`, evitando que los módulos centrales dependan directamente de sus particularidades técnicas.
 
-La capa de persistencia deberá proporcionar los mecanismos necesarios para que las operaciones relacionadas utilicen el mismo contexto transaccional.
-
-### 12.5. Control de concurrencia
-
-Las operaciones sobre casos compartidos deberán considerar modificaciones concurrentes.
-
-La estrategia definitiva podrá apoyarse en mecanismos de PostgreSQL y en verificaciones de versión o bloqueo.
-
-El diseño deberá evitar la pérdida silenciosa de cambios y las transiciones inconsistentes.
-
-## 13. Componente CMP-10 — SIS Integration Adapter
-
-**Identificador:** CMP-10  
-**Nombre:** SIS Integration Adapter  
-**Ubicación:** C-API  
-**Responsabilidad principal:** Encapsular la comunicación con el SIS simulado.
-
-### 13.1. Descripción
-
-Este componente representará el límite de integración entre DH-01 y el simulador del Student Information System.
-
-Su función será evitar que los módulos de negocio dependan directamente de las particularidades técnicas del servicio externo.
-
-### 13.2. Responsabilidades
+Sus responsabilidades incluyen:
 
 - Construir solicitudes de consulta académica.
-- Comunicarse con `X-SIS`.
-- Recibir respuestas sintéticas.
-- Validar la estructura de las respuestas.
-- Transformar los datos al formato interno esperado.
-- Manejar errores de comunicación.
-- Controlar tiempos de espera.
-- Informar la indisponibilidad del servicio cuando corresponda.
+- Comunicarse mediante HTTP(S) con `X-SIS`.
+- Recibir datos sintéticos.
+- Validar las estructuras de respuesta.
+- Transformar información al modelo interno esperado.
+- Manejar errores de comunicación y tiempos de espera.
+- Informar la indisponibilidad del servicio.
 
-### 13.3. Información sintética
+El simulador podrá proporcionar identificadores ficticios, programas académicos, estados académicos y otros atributos mínimos necesarios para los casos de uso.
 
-El simulador podrá proporcionar información como:
+No se utilizarán registros académicos oficiales.
 
-- Identificador ficticio de estudiante.
-- Programa académico.
-- Estado académico general.
-- Otros atributos mínimos necesarios para los casos de uso.
+Las operaciones que no dependan de información académica externa deberán poder continuar cuando el simulador no esté disponible.
 
-No se accederá a registros académicos oficiales.
+El adaptador también facilitará una futura integración institucional autorizada, siempre que se revisen sus contratos, requisitos de seguridad y responsabilidades.
 
-### 13.4. Dependencia controlada
+## 4. Dependencias y reglas de colaboración
 
-La integración deberá utilizarse únicamente cuando la operación lo requiera.
+Los componentes deberán conservar una separación clara entre entrada HTTP, seguridad, dominio, auditoría, persistencia e integración externa.
 
-La creación, seguimiento y resolución de casos no deberán quedar innecesariamente acoplados a la disponibilidad del SIS simulado.
+Las principales dependencias son:
 
-Si una consulta externa falla, el sistema deberá aplicar una respuesta controlada y permitir continuar las operaciones independientes de esa información.
-
-### 13.5. Evolución futura
-
-El adaptador permitirá sustituir el mock por otra implementación de integración, siempre que se mantenga el contrato interno esperado.
-
-Cualquier conexión futura con un SIS institucional real requerirá autorización y revisión de seguridad.
-
-## 14. Dependencias y reglas de colaboración
-
-Las relaciones entre componentes deberán preservar una separación clara entre la entrada HTTP, las políticas de seguridad, los servicios de negocio y el almacenamiento.
-
-| Componente origen | Componente destino | Propósito |
+| Origen | Destino | Propósito |
 |---|---|---|
 | API Controllers | Authentication & Authorization | Verificar identidad y acceso inicial. |
-| API Controllers | Componentes de negocio | Delegar operaciones de asesoría. |
-| Componentes de negocio | Authentication & Authorization | Evaluar permisos específicos sobre recursos protegidos. |
+| API Controllers | Componentes de negocio | Delegar operaciones. |
+| Componentes de negocio | Authentication & Authorization | Evaluar permisos específicos de recursos. |
 | Case Management | Persistence Layer | Consultar y persistir casos. |
-| Case Management | Audit & History | Registrar cambios de estado y otras acciones relevantes. |
-| Triage & Assignment | Case Management | Validar información y estado del caso. |
-| Triage & Assignment | Persistence Layer | Persistir asignaciones y reasignaciones. |
-| Triage & Assignment | Audit & History | Registrar cambios de responsabilidad. |
-| Follow-up & Resolution | Case Management | Aplicar condiciones del ciclo de vida. |
-| Follow-up & Resolution | Persistence Layer | Persistir actividades, recomendaciones y resultados. |
-| Follow-up & Resolution | Audit & History | Registrar acciones relevantes de seguimiento y resolución. |
-| Notes & Confidentiality | Case Management | Validar la existencia y contexto del caso. |
-| Notes & Confidentiality | Authentication & Authorization | Aplicar restricciones de acceso a información sensible. |
-| Notes & Confidentiality | Persistence Layer | Persistir y consultar notas autorizadas. |
-| Notes & Confidentiality | Audit & History | Registrar creación o cambios relevantes sin duplicar contenidos confidenciales. |
-| Reporting & Queries | Persistence Layer | Consultar información operacional autorizada. |
-| Authentication & Authorization | Persistence Layer | Consultar usuarios, roles y datos persistentes de autenticación. |
+| Case Management | Audit & History | Registrar eventos relevantes. |
+| Triage & Assignment | Case Management | Validar estado y contexto del caso. |
+| Triage & Assignment | Persistence Layer / Audit & History | Gestionar responsables e historial. |
+| Follow-up & Resolution | Case Management | Verificar transiciones y condiciones de cierre. |
+| Follow-up & Resolution | Persistence Layer / Audit & History | Persistir seguimientos y registrar eventos. |
+| Notes & Confidentiality | Authentication & Authorization | Proteger información sensible. |
+| Notes & Confidentiality | Persistence Layer / Audit & History | Persistir notas y auditar cambios relevantes. |
+| Reporting & Queries | Persistence Layer | Ejecutar consultas autorizadas. |
 | Audit & History | Persistence Layer | Persistir eventos de negocio. |
-| Case Management | SIS Integration Adapter | Obtener información académica sintética cuando sea necesaria. |
-| SIS Integration Adapter | X-SIS | Consultar datos académicos sintéticos. |
+| Case Management | SIS Integration Adapter | Solicitar contexto académico sintético. |
+| SIS Integration Adapter | X-SIS | Consultar el servicio externo simulado. |
 
-### 14.1. Dependencias permitidas
+**Reglas de diseño:**
 
-Los componentes de entrada podrán invocar servicios de aplicación.
+- Los controladores no deberán contener reglas complejas de negocio.
+- Los componentes colaborarán mediante contratos internos definidos.
+- Las autorizaciones se evaluarán en el backend y no exclusivamente en la interfaz.
+- Los componentes no accederán directamente a estructuras privadas de otros módulos.
+- El acceso a PostgreSQL se realizará mediante Persistence Layer.
+- Se evitarán dependencias circulares.
+- No se duplicarán reglas del ciclo de vida en diferentes componentes.
+- Los cambios relacionados compartirán una transacción cuando sea necesario.
+- La comunicación con `X-SIS` permanecerá aislada mediante el adaptador.
+- Los eventos de auditoría no duplicarán información confidencial innecesaria.
 
-Los servicios de aplicación podrán utilizar servicios del dominio, repositorios y capacidades transversales mediante interfaces definidas.
+Los límites de componentes representan responsabilidades lógicas. Un componente podrá contener varios servicios, políticas, clases y repositorios; no es necesariamente una única clase.
 
-Los módulos de negocio deberán interactuar con otros módulos a través de contratos internos, evitando acceder directamente a estructuras privadas de otro módulo.
+Las colaboraciones transversales de autorización deberán aplicarse aunque no se represente una flecha específica en el diagrama.
 
-Las verificaciones de autorización podrán utilizarse desde distintos componentes sin replicar las políticas de acceso en cada uno de ellos.
+## 5. Flujos de ejecución relevantes
 
-### 14.2. Dependencias que deben evitarse
+### 5.1. Creación de una solicitud
 
-Se deberán evitar:
-
-- Accesos directos desde API Controllers a las tablas para ejecutar reglas de negocio.
-- Operaciones de autorización exclusivamente dentro de `C-WEB`.
-- Referencias circulares entre módulos.
-- Dependencias directas del dominio hacia formatos específicos del SIS.
-- Escrituras a PostgreSQL desde el navegador.
-- Modificaciones de casos sin registrar los eventos de auditoría requeridos.
-- Duplicación de reglas de transición entre distintos módulos.
-- Copias innecesarias de notas confidenciales dentro del historial de auditoría.
-- Transacciones independientes para cambios que deban confirmarse de manera atómica.
-
-### 14.3. Límites de los componentes
-
-Los límites propuestos corresponden a responsabilidades lógicas.
-
-No significa que cada componente deba implementarse como una clase única.
-
-Un módulo podrá contener varios controladores, servicios, entidades, políticas y repositorios, según sus necesidades.
-
-El objetivo es conservar la cohesión funcional y reducir dependencias innecesarias.
-
-### 14.4. Interpretación de las conexiones del diagrama
-
-Las conexiones directas entre componentes indican colaboración o dependencia funcional.
-
-Por ejemplo, `Triage & Assignment → Case Management` significa que las operaciones de clasificación y asignación necesitan consultar o aplicar reglas relacionadas con el estado del caso.
-
-La conexión `Notes & Confidentiality → Audit & History` significa que ciertas modificaciones sobre notas requieren un registro de trazabilidad.
-
-La conexión no significa que Audit & History sea propietario de las notas ni que almacene obligatoriamente sus contenidos.
-
-Las dependencias transversales de autorización se documentan explícitamente en esta sección, aunque no se represente una flecha por cada política en el diagrama.
-
-## 15. Flujos de ejecución relevantes
-
-### 15.1. Creación de una solicitud
-
-El proceso inicia cuando un Student envía una solicitud desde `C-WEB`.
+Cuando un Student registra una solicitud:
 
 1. API Controllers recibe la petición.
-2. Authentication & Authorization verifica la identidad y permisos.
-3. Case Management valida los datos y reglas de creación.
-4. Se inicia una unidad de trabajo transaccional cuando es necesario.
-5. Persistence Layer registra el caso.
-6. Audit & History registra el evento correspondiente dentro de la misma transacción cuando sea obligatorio.
-7. El backend confirma la operación.
-8. API Controllers devuelve una respuesta autorizada a `C-WEB`.
+2. Authentication & Authorization verifica su identidad y permisos.
+3. Case Management valida las reglas de creación.
+4. Persistence Layer registra el caso.
+5. Audit & History registra el evento obligatorio dentro de la misma transacción.
+6. El backend confirma la operación y devuelve una respuesta autorizada.
 
-El sistema deberá evitar confirmar una creación si falla una persistencia obligatoria.
+Una creación no deberá considerarse confirmada si falla una operación obligatoria de persistencia o auditoría.
 
-### 15.2. Asignación o reasignación
+### 5.2. Asignación o reasignación
 
-El proceso inicia cuando un usuario autorizado solicita asignar o reasignar un caso.
+Cuando un usuario autorizado solicita asignar o reasignar un caso:
 
 1. API Controllers recibe la solicitud.
-2. Authentication & Authorization valida el permiso.
-3. Triage & Assignment consulta los datos necesarios.
-4. Case Management verifica las condiciones del caso.
-5. Se valida el responsable de destino.
-6. Se inicia una transacción.
-7. Persistence Layer actualiza la asignación.
-8. Audit & History registra el cambio de responsabilidad dentro de la misma transacción.
-9. Se confirma la transacción.
-10. Se devuelve el resultado.
+2. Authentication & Authorization valida los permisos.
+3. Triage & Assignment consulta el caso y el responsable de destino.
+4. Case Management verifica las condiciones del estado actual.
+5. La operación inicia una transacción y aplica el control de concurrencia correspondiente.
+6. Persistence Layer actualiza la asignación.
+7. Audit & History registra el cambio de responsabilidad dentro de la misma transacción.
+8. La transacción se confirma y se devuelve el resultado.
 
-Un fallo antes de confirmar deberá impedir que se conserve una reasignación incompleta.
+Si alguna operación obligatoria falla, se revertirán los cambios para evitar una asignación inconsistente.
 
-### 15.3. Consulta de notas
+### 5.3. Consulta de notas
 
-El proceso inicia cuando un usuario solicita información asociada a un caso.
+Cuando un usuario intenta consultar notas asociadas a un caso:
 
 1. API Controllers recibe la petición.
-2. Authentication & Authorization verifica la identidad.
-3. Se valida si el usuario puede consultar el caso.
-4. Notes & Confidentiality determina qué categorías de información están permitidas.
-5. Persistence Layer recupera los registros necesarios.
-6. El componente construye una respuesta con los campos autorizados.
-7. API Controllers devuelve el resultado.
+2. Authentication & Authorization verifica identidad, rol y relación con el recurso.
+3. Notes & Confidentiality determina las categorías de información permitidas.
+4. Persistence Layer recupera los registros autorizados.
+5. El backend construye una respuesta que contiene únicamente los campos permitidos.
+6. API Controllers devuelve el resultado.
 
-Un Student no deberá recibir notas internas aunque conozca el identificador del caso.
+Un Student no podrá recibir notas internas aunque conozca el identificador del caso o de la nota.
 
-La consulta de lectura no generará automáticamente un evento de auditoría de negocio, salvo que así lo exija la política de registro de accesos.
+### 5.4. Creación de una nota interna
 
-### 15.4. Creación de una nota interna
-
-Cuando un Academic Adviser autorizado registra una nota interna:
+Cuando un Academic Adviser autorizado registra una nota:
 
 1. API Controllers recibe la solicitud.
-2. Authentication & Authorization verifica su identidad y relación con el caso.
-3. Notes & Confidentiality valida el tipo de nota y las reglas aplicables.
-4. Se inicia una transacción cuando la operación requiere auditoría obligatoria.
-5. Persistence Layer almacena la nota.
-6. Audit & History registra el evento `NOTE_CREATED`, con los metadatos necesarios.
-7. Se confirma la transacción.
-8. El backend devuelve una respuesta autorizada.
+2. Authentication & Authorization verifica su relación con el caso.
+3. Notes & Confidentiality valida el tipo de nota y los permisos.
+4. Persistence Layer almacena la nota dentro de una transacción.
+5. Audit & History registra el evento `NOTE_CREATED` cuando la auditoría sea obligatoria.
+6. La transacción se confirma y el backend devuelve la respuesta.
 
-El evento de auditoría podrá incluir el identificador de la nota, el caso, el actor y la fecha de creación.
+El evento podrá incluir identificadores, actor, fecha y tipo de operación, sin duplicar automáticamente el contenido confidencial.
 
-No deberá incluir automáticamente una copia del contenido confidencial de la nota.
+Si falla la inserción del evento obligatorio, la creación de la nota deberá revertirse.
 
-Si falla la creación del evento obligatorio, la operación completa deberá revertirse.
+### 5.5. Resolución de un caso
 
-### 15.5. Resolución de un caso
+Cuando un Academic Adviser solicita resolver un caso:
 
-Cuando un Academic Adviser autorizado solicita resolver un caso:
+1. API Controllers recibe la solicitud.
+2. Authentication & Authorization verifica identidad y asignación vigente.
+3. La operación inicia una transacción y bloquea el caso.
+4. Case Management comprueba el estado y la versión esperada.
+5. Follow-up & Resolution verifica la existencia de una Recommendation y la ausencia de FollowUps pendientes e InformationRequests abiertos.
+6. Persistence Layer actualiza el estado del caso.
+7. Audit & History registra el evento de resolución en la misma transacción.
+8. Se confirma la operación y se devuelve el estado `RESOLVED`.
 
-1. El backend verifica su identidad y relación con el caso.
-2. Follow-up & Resolution recupera el contexto necesario.
-3. Case Management verifica las reglas de transición.
-4. Se comprueban las condiciones requeridas para la resolución.
-5. Se inicia una transacción.
-6. Persistence Layer registra los cambios correspondientes.
-7. Audit & History registra el evento de resolución.
-8. Se confirma la transacción.
-9. Se devuelve el nuevo estado.
+Si una condición no se cumple, la resolución se rechaza y no se modifica el estado persistido.
 
-Las condiciones definitivas de resolución se detallarán en el diseño del ciclo de vida.
+El control transaccional deberá impedir que una operación concurrente produzca un caso resuelto con actividades incompatibles pendientes.
 
-### 15.6. Consulta al SIS simulado
+### 5.6. Consulta al SIS simulado
 
-Cuando un flujo requiera contexto académico:
+Cuando una operación requiere contexto académico:
 
-1. Case Management solicita información mediante el SIS Integration Adapter.
-2. El adaptador construye una solicitud de prueba.
-3. `X-SIS` responde con información académica sintética.
+1. Case Management solicita la información al SIS Integration Adapter.
+2. El adaptador construye la consulta.
+3. `X-SIS` responde con datos académicos sintéticos o un error.
 4. El adaptador valida y transforma la respuesta.
-5. El módulo de negocio utiliza los datos necesarios.
-6. El backend devuelve únicamente la información autorizada.
+5. El módulo de negocio utiliza únicamente la información necesaria.
+6. El backend devuelve los datos permitidos según la autorización del usuario.
 
-Si el simulador falla, se aplicará el comportamiento de error establecido para esa operación.
+Si el servicio externo no está disponible, el sistema aplicará el manejo de errores definido para la operación y permitirá continuar los procesos independientes de esa consulta.
 
-## 16. Atributos de calidad y responsabilidades
+## 6. Atributos de calidad, riesgos y verificación
 
-### 16.1. Seguridad — QS-01
+### 6.1. Atributos de calidad
 
-Authentication & Authorization y Notes & Confidentiality colaborarán para restringir el acceso a casos y notas.
-
-Las verificaciones deberán ejecutarse en el backend y los resultados deberán filtrarse según el usuario.
-
-### 16.2. Integridad — QS-02
-
-Case Management, Triage & Assignment, Follow-up & Resolution y Persistence Layer deberán preservar la consistencia del ciclo de vida.
-
-Se utilizarán validaciones de estado, restricciones persistentes y transacciones cuando corresponda.
-
-### 16.3. Auditabilidad — QS-03
-
-Audit & History mantendrá los eventos requeridos para reconstruir las operaciones relevantes.
-
-La persistencia de esos eventos deberá coordinarse con las modificaciones de negocio que representan.
-
-El registro de auditoría deberá limitarse a la información necesaria para la trazabilidad, evitando duplicar innecesariamente información confidencial.
-
-### 16.4. Rendimiento — QS-04
-
-Reporting & Queries y Persistence Layer deberán permitir optimizar las consultas más frecuentes.
-
-La validación utilizará datos sintéticos y mediciones reproducibles.
-
-### 16.5. Mantenibilidad — QS-05
-
-La separación modular permitirá localizar los cambios y limitar su impacto.
-
-Las pruebas deberán comprobar el comportamiento de los componentes y sus contratos internos.
-
-### 16.6. Usabilidad — QS-06
-
-API Controllers deberá proporcionar contratos y respuestas consistentes para apoyar el funcionamiento de `C-WEB`.
-
-La experiencia de usuario será responsabilidad principal de la aplicación web, mientras que el backend garantizará la consistencia de las operaciones.
-
-### 16.7. Recuperación — QS-07
-
-Persistence Layer deberá conservar correctamente los cambios confirmados.
-
-La infraestructura y los procedimientos de recuperación se documentarán por separado.
-
-## 17. Riesgos del diseño de componentes
-
-| Riesgo | Consecuencia | Mitigación propuesta |
+| Escenario | Componentes principales | Mecanismo |
 |---|---|---|
-| Reglas de negocio dentro de los controladores | Duplicación y dificultad de mantenimiento | Delegar operaciones a servicios de dominio o aplicación. |
-| Dependencias circulares | Acoplamiento excesivo | Definir interfaces y dirección de dependencias. |
-| Autorización aplicada de manera inconsistente | Acceso indebido | Centralizar políticas y realizar pruebas negativas. |
-| Notas internas mezcladas con respuestas públicas | Exposición de información sensible | Separar categorías y construir respuestas autorizadas. |
-| Auditoría con copias de notas confidenciales | Duplicación y mayor exposición de datos sensibles | Registrar metadatos suficientes sin replicar el contenido completo. |
-| Reasignación sin transacción | Historial o responsable inconsistente | Coordinar persistencia y auditoría en una unidad de trabajo. |
-| Consultas de reportes sin control de alcance | Divulgación de información | Aplicar filtros y políticas de acceso en el servidor. |
-| Dependencia directa del SIS | Fragilidad ante fallos externos | Aislar la comunicación mediante un adaptador. |
-| Actualizaciones concurrentes sin protección | Pérdida de cambios | Aplicar control de concurrencia. |
+| QS-01 — Seguridad | CMP-02, CMP-06 | Autorización contextual y separación de datos sensibles. |
+| QS-02 — Integridad | CMP-03, CMP-04, CMP-05, CMP-09 | Reglas de transición, transacciones y concurrencia. |
+| QS-03 — Auditabilidad | CMP-08, CMP-09 | Historial persistente y registro atómico. |
+| QS-04 — Rendimiento | CMP-07, CMP-09 | Índices, filtros, paginación y consultas eficientes. |
+| QS-05 — Mantenibilidad | CMP-01 a CMP-10 | Responsabilidades claras y contratos internos. |
+| QS-06 — Usabilidad | CMP-01 y C-WEB | Respuestas consistentes y flujos adaptados al rol. |
+| QS-07 — Recuperación | CMP-09 y C-DB | Persistencia, respaldos y procedimientos de recuperación. |
 
-Estos riesgos deberán considerarse durante la implementación y validación del prototipo.
+La separación modular permitirá localizar cambios y realizar pruebas específicas sin introducir servicios distribuidos innecesarios.
 
-## 18. Verificación de la vista
+### 6.2. Riesgos arquitectónicos
 
-La vista de componentes deberá revisarse para determinar si la distribución de responsabilidades permite satisfacer los requisitos y atributos de calidad.
+| Riesgo | Consecuencia | Mitigación |
+|---|---|---|
+| Reglas de negocio dentro de controladores | Acoplamiento y duplicación | Delegar operaciones a servicios de aplicación. |
+| Dependencias circulares | Dificultad de mantenimiento | Definir interfaces y dirección de dependencias. |
+| Autorización inconsistente | Acceso indebido | Centralizar políticas y realizar pruebas negativas. |
+| Exposición de notas internas | Pérdida de confidencialidad | Construir respuestas autorizadas en el backend. |
+| Auditoría con contenido confidencial duplicado | Mayor exposición de datos | Registrar metadatos mínimos necesarios. |
+| Operaciones sin transacciones | Datos e historial inconsistentes | Compartir una unidad de trabajo transaccional. |
+| Actualizaciones concurrentes | Pérdida de cambios | Utilizar bloqueo y control de versiones. |
+| Reportes sin filtros de autorización | Divulgación de información | Aplicar restricciones de alcance a las consultas. |
+| Dependencia directa de X-SIS | Fragilidad ante fallos externos | Utilizar SIS Integration Adapter. |
 
-### 18.1. Revisión estructural
+Los riesgos identificados se relacionan con el seguimiento general documentado en `project-status.md`.
 
-Se comprobará que:
+### 6.3. Verificación
 
-- Los componentes tengan responsabilidades diferenciadas.
-- Las reglas de negocio no dependan de los controladores HTTP.
-- El acceso a PostgreSQL esté encapsulado.
-- Las políticas de autorización se apliquen a operaciones y recursos.
-- Los eventos de auditoría puedan registrarse dentro de las transacciones pertinentes.
-- Los eventos de auditoría no dupliquen innecesariamente el contenido de notas confidenciales.
-- Las dependencias no formen ciclos innecesarios.
-- El SIS simulado permanezca aislado mediante su adaptador.
-- La estructura sea compatible con un único backend desplegable.
+La revisión de esta vista deberá comprobar que:
 
-### 18.2. Pruebas previstas
+- Los diez componentes tengan responsabilidades diferenciadas.
+- Los controladores no implementen reglas de negocio complejas.
+- Los módulos respeten los límites y contratos internos.
+- La autorización se aplique en todas las operaciones protegidas.
+- PostgreSQL sea accesible mediante Persistence Layer.
+- Los eventos obligatorios compartan la transacción de la operación.
+- Los registros de auditoría eviten contenido sensible innecesario.
+- El ciclo de vida respete las condiciones de resolución.
+- Las operaciones concurrentes no generen inconsistencias.
+- X-SIS permanezca aislado mediante su adaptador.
 
-La validación podrá incluir:
+Las pruebas propuestas incluyen autenticación y autorización, transiciones de estado, asignación y reasignación, concurrencia, persistencia transaccional, auditoría, confidencialidad de notas, consultas operacionales e integración simulada.
 
-- Pruebas unitarias de reglas de negocio.
-- Pruebas de autenticación.
-- Pruebas de autorización positiva y negativa.
-- Pruebas de transiciones válidas e inválidas.
-- Pruebas de asignación y reasignación.
-- Pruebas de atomicidad y concurrencia.
-- Pruebas de separación de notas.
-- Pruebas de persistencia de auditoría.
-- Pruebas de creación de notas con registro de eventos.
-- Pruebas para comprobar que los eventos no contienen información confidencial innecesaria.
-- Pruebas de integración con el simulador del SIS.
-- Pruebas de consultas operacionales.
+Los procedimientos y criterios detallados se encuentran en el [Plan de Validación](../validation/test-plan.md). Los resultados observados deberán documentarse en los registros de validación correspondientes.
 
-### 18.3. Evidencia
+## 7. Trazabilidad y documentos relacionados
 
-Los resultados deberán documentarse en `validation/`.
+**Architecture Drivers:** AD-01, AD-02, AD-03, AD-04, AD-05, AD-06 y AD-07.
 
-Las evidencias podrán incluir registros de pruebas, respuestas de API, resultados de ejecución y capturas de flujos relevantes.
+**Escenarios de calidad:** QS-01, QS-02, QS-03, QS-04, QS-05, QS-06 y QS-07.
 
-Las verificaciones descritas son objetivos de validación y no implican que los componentes estén implementados o probados.
+**Decisiones arquitectónicas:**
 
-## 19. Trazabilidad
+- [ADR-001 — Modular Monolith Architecture](../adr/ADR-001.md)
+- [ADR-002 — Relational Database and Persistent Data Management](../adr/ADR-002.md)
+- [ADR-003 — Controlled Case Lifecycle and Transactional Consistency](../adr/ADR-003.md)
+- [ADR-004 — Authentication and Resource-Based Authorization](../adr/ADR-004.md)
+- [ADR-005 — Persistent Audit Trail and Case History](../adr/ADR-005.md)
 
-| Elemento | Relación |
-|---|---|
-| AD-01 | Integridad de los casos y operaciones. |
-| AD-02 | Confidencialidad y acceso restringido. |
-| AD-03 | Auditoría e historial. |
-| AD-04 | Consistencia del seguimiento y la resolución. |
-| AD-05 | Mantenibilidad y organización modular. |
-| AD-06 | Consultas y supervisión operacional. |
-| AD-07 | Viabilidad técnica del despliegue. |
-| ADR-001 | Monolito modular. |
-| ADR-002 | PostgreSQL como base de datos relacional. |
-| ADR-003 | Reglas centralizadas y operaciones atómicas. |
-| ADR-004 | Autenticación interna y autorización por recursos. |
-| ADR-005 | Auditoría persistente. |
-| QS-01 | Seguridad y confidencialidad. |
-| QS-02 | Integridad y concurrencia. |
-| QS-03 | Trazabilidad. |
-| QS-04 | Rendimiento. |
-| QS-05 | Mantenibilidad. |
-| QS-06 | Usabilidad. |
-| QS-07 | Persistencia y recuperación. |
-| V-CTX | Contexto del sistema. |
-| V-CON | Vista de contenedores. |
-| V-CMP | Vista de componentes del backend. |
+**Vistas complementarias:**
 
-### 19.1. Documentos relacionados
+- [System Context View](system-context.md)
+- [Container View](container-view.md)
+- [Deployment View](deployment-view.md)
 
-- [Vista de Contexto](system-context.md).
-- [Vista de Contenedores](container-view.md).
-- [Decisiones Arquitectónicas](../adr/README.md).
-- [Requisitos y Drivers Arquitectónicos](../requirements-and-drivers.md).
-- [Escenarios de Calidad](../quality-scenarios.md).
-- [Diseño de Dominio y Datos](../design/domain-and-data.md).
-- [Ciclo de Vida y Comportamiento](../design/lifecycle-and-runtime.md).
-- [Diseño de Interfaces](../design/interfaces.md).
-- [Diseño de Seguridad](../design/security.md).
-- [Plan de Pruebas](../validation/test-plan.md).
+**Documentos de diseño y validación:**
 
-Los documentos de diseño detallado ampliarán las responsabilidades y contratos identificados en esta vista.
+- [Requirements and Drivers](../requirements-and-drivers.md)
+- [Quality Scenarios](../quality-scenarios.md)
+- [Domain and Data Model](../design/domain-and-data.md)
+- [Lifecycle and Runtime](../design/lifecycle-and-runtime.md)
+- [API Contracts](../design/interfaces.md)
+- [Security Design](../design/security.md)
+- [Validation Plan](../validation/test-plan.md)
+- [Traceability Matrix](../traceability.md)
 
-## 20. Conclusión
+La vista de componentes establece una estructura lógica para `C-API` basada en responsabilidades diferenciadas y colaboración controlada.
 
-La vista de componentes establece una organización lógica para el Backend API de DH-01 basada en responsabilidades diferenciadas.
+La lógica de negocio permanecerá organizada en módulos internos, la persistencia se concentrará en una capa de acceso a PostgreSQL y la integración académica simulada se aislará mediante un adaptador.
 
-`C-API` estará compuesto por módulos encargados de recibir solicitudes, autenticar usuarios, aplicar políticas de acceso, gestionar casos, clasificar y asignar responsabilidades, administrar seguimientos, controlar notas confidenciales, generar consultas operacionales y conservar la trazabilidad.
-
-La persistencia se concentrará en una capa de acceso a PostgreSQL, mientras que la integración con el SIS simulado se aislará mediante un adaptador.
-
-La relación entre Notes & Confidentiality y Audit & History permitirá registrar los cambios relevantes sobre las notas sin duplicar innecesariamente su contenido confidencial.
-
-Las operaciones que requieran consistencia y trazabilidad deberán utilizar mecanismos transaccionales para confirmar conjuntamente los cambios de negocio y sus eventos obligatorios.
-
-La organización propuesta mantiene el enfoque de monolito modular y evita que los componentes deban desplegarse como servicios independientes.
-
-Esta estructura proporcionará la base para definir el modelo de dominio, las entidades persistentes, las transiciones de estado, los contratos de la API y los mecanismos concretos de seguridad.
-
-La validez del diseño deberá confirmarse mediante revisión arquitectónica y pruebas del prototipo, de acuerdo con los escenarios de calidad y los requisitos establecidos para DH-01.
+Esta organización mantiene el enfoque de monolito modular definido en ADR-001 y proporciona una base coherente para los modelos de dominio, las interfaces, los mecanismos de seguridad y la validación arquitectónica de DH-01.

@@ -1,6 +1,6 @@
 # DH-01 — Academic Advising Case Management System
 
-# Quality Attribute Scenarios
+## Quality Attribute Scenarios
 
 ## 1. Propósito
 

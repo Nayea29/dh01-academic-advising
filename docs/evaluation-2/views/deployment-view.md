@@ -1,79 +1,80 @@
 # DH-01 — Vista de Despliegue del Sistema
 
-**Proyecto:** Academic Advising Case Management System  
 **ID de la vista:** V-DEP  
-**Estilo de modelado:** C4 Model — Deployment Level  
+**Modelo:** C4 Model — Deployment Level  
 **Entorno representado:** Entorno de prueba y demostración propuesto  
-**Decisión arquitectónica principal:** ADR-001 — Modular Monolith Architecture  
-**Decisiones relacionadas:** ADR-002, ADR-003, ADR-004 y ADR-005  
-**Estado:** Diseño propuesto, pendiente de implementación y validación
+**Decisión principal:** ADR-001 — Modular Monolith Architecture  
+**Decisiones relacionadas:** ADR-002, ADR-003, ADR-004 y ADR-005
 
-## 1. Propósito
+## 1. Propósito y estrategia de despliegue
 
 La vista de despliegue describe cómo se distribuirán los contenedores del Academic Advising Case Management System (DH-01) en un entorno de ejecución.
 
-Su objetivo es identificar los nodos de despliegue, las unidades de software alojadas en ellos, las conexiones de red y las responsabilidades técnicas relacionadas con la operación de la solución.
+Su objetivo es identificar los nodos de despliegue, las unidades de software alojadas en ellos, las comunicaciones de red y las responsabilidades técnicas relacionadas con la operación del sistema.
 
-Mientras la vista de contenedores presenta la organización de las aplicaciones y almacenes de datos, la vista de despliegue muestra dónde se ejecutarán esas unidades y cómo podrán comunicarse.
+Mientras que la vista de contenedores describe las aplicaciones y almacenes de datos que componen la solución, esta vista muestra dónde se ejecutarán esas unidades y cómo se comunicarán.
 
-La arquitectura propuesta busca facilitar el desarrollo, la demostración y la validación del sistema sin introducir dependencias innecesarias de infraestructura institucional.
+La arquitectura propuesta busca facilitar el desarrollo, las pruebas y la demostración del sistema sin introducir dependencias innecesarias de infraestructura institucional.
 
-El despliegue deberá permitir ejecutar:
+El despliegue contempla cuatro elementos:
 
-- La aplicación web React (`C-WEB`).
-- El backend Node.js + Express (`C-API`).
-- La base de datos PostgreSQL (`C-DB`).
-- El servicio mock del Student Information System (`X-SIS`).
+- `C-WEB`: aplicación web React.
+- `C-API`: backend Node.js + Express.
+- `C-DB`: base de datos PostgreSQL.
+- `X-SIS`: servicio HTTP mock del Student Information System.
 
-El sistema no utilizará registros académicos reales. Las identidades y los datos empleados durante las pruebas serán ficticios.
+Se propone una configuración sencilla que pueda ejecutarse en un servidor de prueba o en un equipo de desarrollo.
 
-Esta vista representa una propuesta de despliegue y no constituye evidencia de infraestructura ya implementada.
+La arquitectura no requiere inicialmente un clúster, balanceadores de carga, múltiples réplicas del backend ni servicios administrados en la nube.
+
+La separación entre aplicación, datos e integración externa será principalmente lógica. Esto permite alojar diferentes procesos en un mismo equipo durante el prototipo, manteniendo sus responsabilidades y controles de acceso.
+
+Se utilizarán usuarios ficticios y datos académicos sintéticos. No se accederá a registros institucionales reales.
 
 ## 2. Diagrama de despliegue
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial", "fontSize": "15px", "lineColor": "#94A3B8", "edgeLabelBackground": "#334155"}, "flowchart": {"nodeSpacing": 40, "rankSpacing": 65, "htmlLabels": true}}}%%
 flowchart TB
-    USER["`**Usuarios**
+    USER["Usuarios institucionales
     Navegador web
     Student, Academic Adviser,
     Program Coordinator,
-    Advising Coordinator, IT Services`"]
+    Advising Coordinator e IT Services"]
 
     subgraph ENV["Entorno de prueba — DH-01"]
         direction TB
 
-        subgraph APP["N-APP: Nodo de aplicación"]
+        subgraph APP["N-APP — Nodo de aplicación"]
             direction TB
 
-            WEB["`**C-WEB: Aplicación Web**
-            React · Archivos estáticos
-            Servidor HTTP / reverse proxy`"]
+            WEB["C-WEB — Aplicación Web
+            React — Archivos estáticos
+            Servidor HTTP / Reverse Proxy"]
 
-            API["`**C-API: Backend API**
+            API["C-API — Backend API
             Node.js + Express
             Monolito modular
-            Autenticación interna`"]
+            Autenticación y autorización"]
 
             WEB -->|"REST / JSON mediante reverse proxy"| API
         end
 
-        subgraph DATA["N-DB: Nodo lógico de datos"]
-            DB[("`**C-DB: PostgreSQL**
-            Casos, usuarios, notas,
-            asignaciones y auditoría`")]
+        subgraph DATA["N-DB — Nodo lógico de datos"]
+            DB[("C-DB — PostgreSQL
+            Casos, usuarios, sesiones,
+            asignaciones, notas y auditoría")]
         end
     end
 
-    subgraph TEST["Dependencia externa de prueba"]
-        SIS["`**X-SIS: Servicio mock**
-        Student Information System
-        Datos académicos sintéticos`"]
+    subgraph TEST["Dependencia externa simulada"]
+        SIS["N-MOCK / X-SIS
+        Servicio HTTP mock
+        Datos académicos sintéticos"]
     end
 
     USER -->|"HTTPS"| WEB
     API -->|"Protocolo PostgreSQL / SQL"| DB
-    API -.->|"HTTP(S) / JSON simulado"| SIS
+    API -.->|"HTTP(S) / JSON"| SIS
 
     classDef actor fill:#1E3A5F,stroke:#60A5FA,color:#FFFFFF,stroke-width:2px
     classDef app fill:#0F766E,stroke:#5EEAD4,color:#FFFFFF,stroke-width:2px
@@ -87,762 +88,420 @@ flowchart TB
     style APP fill:#1C2938,stroke:#64748B,color:#E2E8F0
     style DATA fill:#1C2938,stroke:#64748B,color:#E2E8F0
     style TEST fill:#17212E,stroke:#64748B,color:#E2E8F0
-
-    linkStyle default stroke:#94A3B8,stroke-width:2px
 ```
 
-**Figura V-DEP.** Vista de despliegue propuesta para el entorno de prueba del Academic Advising Case Management System.
+**Figura V-DEP.** Distribución propuesta de DH-01 en un entorno de prueba y demostración.
 
-El diagrama identifica los nodos lógicos de ejecución, los contenedores desplegados y las comunicaciones previstas para DH-01.
+El diagrama identifica los nodos lógicos de ejecución y sus comunicaciones.
 
-El entorno se organiza mediante dos responsabilidades principales:
+`N-APP` aloja la aplicación web y el backend. `N-DB` representa el almacenamiento persistente mediante PostgreSQL. `N-MOCK` ejecuta el servicio simulado del SIS fuera del límite funcional de DH-01.
 
-- **N-APP — Nodo de aplicación:** aloja la aplicación React (`C-WEB`) y el backend Node.js + Express (`C-API`).
-- **N-DB — Nodo lógico de datos:** aloja PostgreSQL (`C-DB`) y conserva la información persistente del sistema.
+La separación entre `N-APP` y `N-DB` no exige servidores físicos diferentes. Ambos podrán ejecutarse en un mismo equipo durante el prototipo, siempre que se mantengan las restricciones de conexión y persistencia.
 
-Ambos nodos pertenecen al entorno de DH-01. Su separación es lógica y no exige utilizar servidores físicos diferentes. Para el prototipo podrán ejecutarse en un mismo equipo, siempre que se mantengan los controles de acceso y persistencia correspondientes.
+`N-MOCK` deberá ejecutarse como un proceso o servicio independiente de `C-API`, aunque ambos puedan compartir infraestructura física.
 
-El servicio `X-SIS` se representa fuera de los límites de DH-01 porque constituye una dependencia externa simulada que proporcionará datos académicos sintéticos.
+Las líneas continuas muestran las comunicaciones principales y la línea punteada representa la integración externa simulada.
 
-### 2.1. Convenciones
+## 3. Nodos y responsabilidades
 
-- Azul: usuarios y dispositivos cliente.
-- Verde azulado: aplicaciones ejecutables de DH-01.
-- Gris azulado: almacenamiento persistente e integración externa de prueba.
-- Líneas continuas: comunicaciones previstas entre aplicaciones y almacenamiento.
-- Línea punteada: comunicación con el SIS simulado.
+### 3.1. N-CLIENT — Navegador del usuario
 
-### 2.2. Interpretación de las comunicaciones
-
-**Navegador → C-WEB**
-
-Los usuarios accederán mediante HTTPS. El servidor web entregará los archivos estáticos de React.
-
-**C-WEB → C-API**
-
-La aplicación realizará solicitudes REST e intercambiará datos JSON con el backend.
-
-En el despliegue propuesto, el reverse proxy podrá recibir las solicitudes HTTPS y dirigirlas al proceso Node.js mediante una conexión interna. El protocolo y el cifrado de ese tramo dependerán de la configuración física de los servicios.
-
-La conexión dibujada representa la comunicación lógica entre la aplicación web y la API.
-
-**C-API → C-DB**
-
-El backend utilizará el protocolo de PostgreSQL para ejecutar consultas y transacciones SQL.
-
-Si ambos procesos se ejecutan en el mismo equipo, podrá utilizarse una conexión local restringida. Si la base de datos se ubica en otro servidor, será necesario configurar controles de red y cifrado apropiados.
-
-**C-API → X-SIS**
-
-El backend consultará el simulador mediante el SIS Integration Adapter.
-
-Esta integración utilizará respuestas de prueba con información académica ficticia. No representa una conexión real con los sistemas de Horizon University.
-
-### 2.3. Alcance del despliegue
-
-El diagrama representa una configuración técnica propuesta para desarrollo, pruebas y demostración.
-
-No implica que la infraestructura ya se encuentre implementada ni que se hayan comprobado los mecanismos de seguridad, disponibilidad o recuperación.
-
-La distribución física, las herramientas de ejecución, los recursos de hardware y los procedimientos de respaldo se definirán en `deployment-assumptions.md`.
-
-La configuración propuesta busca mantener una infraestructura sencilla y viable para el alcance del prototipo, sin incorporar servicios distribuidos que no estén justificados por los requisitos del sistema.
-
-## 3. Descripción general del entorno
-
-El entorno propuesto tiene como finalidad ejecutar una versión funcional de DH-01 y permitir la validación de los principales escenarios arquitectónicos.
-
-Se propone una configuración sencilla que pueda ejecutarse en un servidor de prueba o en un equipo de desarrollo suficientemente preparado.
-
-La arquitectura no requerirá inicialmente un clúster, balanceadores de carga, múltiples réplicas del backend ni servicios administrados en la nube.
-
-La solución estará compuesta por:
-
-| Identificador | Elemento | Función |
-|---|---|---|
-| N-CLIENT | Navegador del usuario | Acceder a la interfaz web. |
-| N-APP | Nodo de aplicación | Servir React y ejecutar Node.js + Express. |
-| N-DB | Nodo lógico de datos | Ejecutar PostgreSQL y conservar información. |
-| N-MOCK | Entorno externo de prueba | Ejecutar el simulador del SIS. |
-
-`N-DB` podrá implementarse en el mismo servidor que `N-APP` durante la demostración.
-
-`N-MOCK` será una dependencia separada desde el punto de vista funcional y se ejecutará como un proceso o servicio de prueba independiente de `C-API`. Esto no exige un equipo físico diferente.
-
-La distribución física definitiva dependerá de la infraestructura realmente disponible.
-
-### 3.1. Estrategia de despliegue seleccionada
-
-Para el prototipo se propone una configuración de aplicación y datos que pueda ejecutarse en un único equipo, manteniendo separados los procesos y sus responsabilidades.
-
-Esta alternativa reduce la complejidad operacional y permite validar el comportamiento del sistema sin asumir servicios institucionales existentes.
-
-En un entorno futuro con mayores necesidades de disponibilidad, los nodos lógicos podrían distribuirse en infraestructura independiente.
-
-Dicha evolución requeriría una nueva evaluación de capacidad, seguridad y recuperación.
-
-## 4. Nodo N-CLIENT — Navegador del usuario
-
-**Identificador:** N-CLIENT  
 **Tipo:** Dispositivo cliente  
 **Software:** Navegador web moderno  
 **Elemento utilizado:** C-WEB
 
-### 4.1. Descripción
+Los usuarios accederán a DH-01 mediante un navegador web, sin necesidad de instalar una aplicación de escritorio.
 
-Los usuarios accederán a DH-01 mediante un navegador web.
+El navegador cargará los recursos de React, presentará las interfaces correspondientes a cada rol y enviará las solicitudes necesarias al backend.
 
-No será necesario instalar una aplicación de escritorio específica para utilizar las funcionalidades principales.
+Sus responsabilidades incluyen:
 
-El navegador cargará los recursos de la aplicación React y permitirá interactuar con la interfaz correspondiente a cada rol.
+- Presentar formularios y vistas.
+- Capturar información introducida por el usuario.
+- Enviar solicitudes a la API.
+- Mostrar resultados, estados y errores.
+- Mantener el estado de navegación necesario para la experiencia del usuario.
 
-Los stakeholders considerados son Student, Academic Adviser, Program Coordinator, Advising Coordinator e IT Services.
+El navegador no será considerado un entorno confiable para aplicar las reglas definitivas de autorización.
 
-### 4.2. Responsabilidades
+No deberá contener credenciales de PostgreSQL ni secretos del backend.
 
-- Presentar la interfaz web.
-- Capturar los datos introducidos por el usuario.
-- Enviar solicitudes al backend.
-- Mostrar las respuestas recibidas.
-- Mantener el estado de navegación y de sesión necesario para la experiencia del usuario.
+Las comunicaciones públicas en un entorno desplegado utilizarán HTTPS.
 
-### 4.3. Seguridad
+### 3.2. N-APP — Nodo de aplicación
 
-El navegador no será considerado un entorno confiable para aplicar reglas definitivas de autorización.
-
-Las verificaciones de acceso deberán ejecutarse en `C-API`.
-
-La aplicación no deberá contener credenciales de PostgreSQL ni secretos utilizados por el servidor.
-
-En un entorno accesible mediante red, la comunicación entre el navegador y la aplicación deberá utilizar HTTPS.
-
-## 5. Nodo N-APP — Servidor de aplicación
-
-**Identificador:** N-APP  
 **Tipo:** Nodo de ejecución de aplicaciones  
 **Contenedores alojados:** C-WEB y C-API  
-**Tecnologías propuestas:** Servidor HTTP, React, Node.js y Express
+**Tecnologías:** Servidor HTTP, React, Node.js y Express
 
-### 5.1. Descripción
+Este nodo alojará los elementos necesarios para presentar la interfaz y procesar las solicitudes de los usuarios.
 
-El nodo de aplicación alojará los elementos ejecutables necesarios para atender las solicitudes de los usuarios.
+**Aplicación web — C-WEB**
 
-Se propone que la aplicación React se entregue como un conjunto de archivos estáticos generados mediante su proceso de compilación.
+La aplicación React se compilará para producir archivos estáticos que podrán servirse mediante un servidor HTTP o reverse proxy.
 
-El backend Node.js + Express se ejecutará como un proceso de servidor independiente dentro del mismo nodo lógico.
+La interfaz consumirá los endpoints de `C-API` y no establecerá conexiones directas con PostgreSQL.
 
-Esta configuración permite desplegar la aplicación sin requerir una infraestructura distribuida.
+**Backend API — C-API**
 
-### 5.2. Aplicación Web — C-WEB
+El backend Node.js + Express se ejecutará como una única aplicación modular.
 
-La aplicación web será compilada para producir archivos estáticos.
+Contendrá los componentes:
 
-Estos recursos podrán servirse mediante un servidor HTTP o reverse proxy.
+- CMP-01 — API Controllers.
+- CMP-02 — Authentication & Authorization.
+- CMP-03 — Case Management.
+- CMP-04 — Triage & Assignment.
+- CMP-05 — Follow-up & Resolution.
+- CMP-06 — Notes & Confidentiality.
+- CMP-07 — Reporting & Queries.
+- CMP-08 — Audit & History.
+- CMP-09 — Persistence Layer.
+- CMP-10 — SIS Integration Adapter.
 
-Su responsabilidad será entregar al navegador los archivos necesarios para ejecutar la interfaz.
+El backend ejecutará las reglas de negocio, aplicará las autorizaciones, coordinará las transacciones y registrará los eventos de auditoría correspondientes.
 
-La aplicación React consumirá los endpoints del Backend API para consultar y modificar información.
+La autenticación utilizará sesiones opacas administradas por el servidor, conforme a ADR-004.
 
-No se permitirá una conexión directa desde React hacia PostgreSQL.
+**Servidor HTTP y reverse proxy**
 
-### 5.3. Backend API — C-API
+El punto de entrada podrá recibir solicitudes HTTPS, entregar los archivos de React y dirigir las peticiones de API hacia el proceso Node.js.
 
-El backend se ejecutará mediante Node.js y Express.
+Cuando ambos servicios compartan un equipo, el tramo entre el proxy y Express podrá utilizar una conexión interna restringida.
 
-Dentro de este proceso estarán los componentes definidos en la Vista de Componentes:
+Si dicha comunicación atraviesa una red no confiable, deberá protegerse mediante cifrado de transporte.
 
-- API Controllers.
-- Authentication & Authorization.
-- Case Management.
-- Triage & Assignment.
-- Follow-up & Resolution.
-- Notes & Confidentiality.
-- Reporting & Queries.
-- Audit & History.
-- Persistence Layer.
-- SIS Integration Adapter.
+El puerto interno del backend no necesitará exposición pública directa.
 
-Estos componentes compartirán un mismo proceso de aplicación, aunque mantendrán responsabilidades lógicas diferenciadas.
+**Supervisión y reinicio**
 
-El backend será responsable de ejecutar las verificaciones de autorización, aplicar las reglas del ciclo de vida de los casos, coordinar operaciones transaccionales y registrar los eventos de auditoría necesarios.
+El proceso Node.js deberá contar con un mecanismo apropiado de inicio y reinicio.
 
-### 5.4. Comunicación entre C-WEB y C-API
+Podrá utilizarse un administrador de procesos o una herramienta equivalente, según el entorno seleccionado.
 
-La comunicación funcional utilizará solicitudes HTTP con una interfaz REST y mensajes JSON.
+El reinicio de `C-API` no deberá eliminar información confirmada en PostgreSQL.
 
-En el despliegue propuesto se utilizará HTTPS para el acceso desde los navegadores.
+### 3.3. N-DB — Nodo lógico de datos
 
-Un reverse proxy podrá recibir las solicitudes públicas y dirigir las llamadas a la API hacia el proceso Node.js.
-
-En una configuración donde el reverse proxy y Express se ejecuten en el mismo equipo, podrá utilizarse una conexión interna restringida para ese tramo.
-
-Si la comunicación entre ambos procesos atraviesa una red no confiable, deberá protegerse mediante cifrado de transporte.
-
-Esta configuración permitirá evitar la exposición directa del puerto interno del backend.
-
-La elección del servidor HTTP y del mecanismo de supervisión de procesos se detallará en `deployment-assumptions.md`.
-
-### 5.5. Configuración
-
-El backend necesitará configuración para:
-
-- Puerto de ejecución.
-- Credenciales de conexión a PostgreSQL.
-- Configuración de autenticación y sesiones.
-- Dirección del servicio mock del SIS.
-- Entorno de ejecución.
-- Parámetros de registro de errores.
-- Valores de tiempo de espera para integraciones.
-
-Las credenciales y otros secretos no deberán almacenarse directamente en el código fuente.
-
-### 5.6. Reinicio y supervisión
-
-El proceso de Node.js deberá contar con un mecanismo de inicio y reinicio adecuado al entorno.
-
-Podrá utilizarse un administrador de procesos o una herramienta equivalente.
-
-El mecanismo concreto se seleccionará durante la preparación del despliegue.
-
-El reinicio del proceso no deberá eliminar la información previamente confirmada en PostgreSQL.
-
-## 6. Nodo N-DB — Almacenamiento persistente
-
-**Identificador:** N-DB  
-**Tipo:** Nodo lógico de datos  
+**Tipo:** Nodo lógico de almacenamiento  
 **Contenedor alojado:** C-DB  
-**Tecnología propuesta:** PostgreSQL
+**Tecnología:** PostgreSQL
 
-### 6.1. Descripción
+Este nodo será responsable de conservar la información persistente del sistema.
 
-El nodo de datos será responsable de ejecutar PostgreSQL y conservar la información persistente de DH-01.
+Entre los datos almacenados se encuentran:
 
-La base de datos almacenará usuarios de prueba, casos, asignaciones, seguimientos, notas, recomendaciones y eventos de auditoría.
+- Usuarios, roles y sesiones de prueba.
+- Casos académicos y clasificaciones.
+- Asignaciones y reasignaciones.
+- Seguimientos y solicitudes de información.
+- Notas y recomendaciones.
+- Eventos de auditoría e historial.
 
-### 6.2. Separación lógica y física
+PostgreSQL proporcionará restricciones de integridad y mecanismos transaccionales para apoyar la consistencia de las operaciones.
 
-La arquitectura distingue `N-DB` de `N-APP` debido a que tienen responsabilidades operacionales diferentes.
+La separación lógica de `N-DB` permite reconocer sus responsabilidades de almacenamiento, seguridad y recuperación, aunque físicamente se encuentre en el mismo equipo que `N-APP`.
 
-Sin embargo, esta separación no exige utilizar servidores físicos independientes durante el prototipo.
+La base de datos no deberá aceptar conexiones públicas innecesarias.
 
-Ambos podrán ejecutarse en el mismo equipo si la capacidad disponible es suficiente.
+El backend utilizará credenciales con los privilegios requeridos para sus operaciones. Los accesos administrativos deberán gestionarse separadamente cuando corresponda.
 
-En ese caso, PostgreSQL deberá configurarse para aceptar únicamente las conexiones necesarias.
+Las modificaciones relacionadas, como una reasignación y su evento de auditoría, deberán confirmarse de manera atómica.
 
-Si en el futuro se despliega la base de datos en un servidor diferente, deberán revisarse los controles de conectividad, autenticación y cifrado.
+La persistencia permitirá conservar los cambios confirmados después de reiniciar el backend, pero no sustituirá una estrategia de respaldo y restauración.
 
-### 6.3. Persistencia
+### 3.4. N-MOCK — Simulador del SIS
 
-El sistema deberá conservar los registros confirmados incluso cuando se reinicie el proceso Node.js.
-
-La persistencia dependerá del almacenamiento utilizado por PostgreSQL y de la correcta configuración de la base de datos.
-
-Un reinicio del backend no deberá eliminar los casos previamente confirmados.
-
-### 6.4. Integridad
-
-PostgreSQL proporcionará mecanismos de transacción y restricciones que contribuirán a garantizar la integridad de las operaciones.
-
-Las modificaciones relacionadas con asignaciones, transiciones de estado y eventos de auditoría deberán ejecutarse de manera atómica cuando corresponda.
-
-Las operaciones confirmadas deberán mantener relaciones consistentes entre sus registros.
-
-### 6.5. Seguridad
-
-La base de datos no deberá exponerse públicamente a los navegadores.
-
-Solamente los servicios autorizados podrán establecer conexiones.
-
-Las credenciales utilizadas por el backend deberán tener privilegios acordes con sus operaciones necesarias.
-
-Las tareas administrativas deberán utilizar accesos separados cuando sea pertinente.
-
-### 6.6. Recuperación
-
-La persistencia cotidiana no sustituye una estrategia de respaldo.
-
-El diseño deberá considerar procedimientos de respaldo y restauración, aunque su implementación definitiva dependerá del alcance y recursos disponibles.
-
-Los mecanismos previstos se documentarán en `deployment-assumptions.md`.
-
-## 7. Nodo N-MOCK — Simulador del SIS
-
-**Identificador:** N-MOCK  
-**Sistema representado:** X-SIS  
 **Tipo:** Servicio externo simulado  
-**Tecnología:** Servicio mock HTTP de prueba, pendiente de selección
+**Sistema representado:** X-SIS  
+**Tecnología:** Servicio HTTP mock
 
-### 7.1. Descripción
+Este nodo proporcionará respuestas académicas sintéticas para los escenarios que requieran información del Student Information System.
 
-El entorno de integración simulará algunas respuestas del Student Information System (SIS).
+El simulador será independiente del proceso principal de `C-API` y no tendrá acceso directo a las tablas de casos de PostgreSQL.
 
-Su objetivo será proporcionar información académica sintética para aquellos flujos de DH-01 que necesiten contexto adicional.
+Podrá devolver información como:
 
-No se utilizará una conexión real con el SIS de Horizon University.
-
-### 7.2. Independencia
-
-El simulador será independiente del proceso principal de `C-API`.
-
-Esta separación permitirá demostrar el comportamiento del sistema cuando una dependencia externa se encuentre disponible, responda con errores o presente tiempos de espera.
-
-El simulador no tendrá acceso directo a las tablas de casos de PostgreSQL.
-
-Su independencia será lógica y de proceso; no requiere que se ejecute en una máquina física distinta durante las pruebas.
-
-### 7.3. Datos utilizados
-
-Se utilizarán exclusivamente datos ficticios.
-
-Por ejemplo, el simulador podrá proporcionar:
-
-- Identificador sintético del estudiante.
-- Programa académico ficticio.
+- Identificador ficticio del estudiante.
+- Programa académico.
 - Estado académico general.
-- Información contextual mínima necesaria para una solicitud.
+- Datos contextuales mínimos necesarios para la asesoría.
 
-El contrato definitivo se especificará en `design/interfaces.md`.
+La comunicación se realizará mediante el componente SIS Integration Adapter.
 
-### 7.4. Fallos de integración
+El adaptador preparará las solicitudes, validará las respuestas, transformará los datos y manejará errores de comunicación.
 
-Se podrán simular escenarios como:
+El entorno permitirá representar escenarios de respuesta exitosa, estudiante no encontrado, indisponibilidad, tiempo de espera agotado y respuesta inválida.
 
-- Respuesta exitosa.
-- Estudiante no encontrado.
-- Servicio no disponible.
-- Tiempo de espera agotado.
-- Respuesta inválida.
+Las operaciones que no dependan del SIS deberán poder continuar cuando el simulador esté indisponible, siempre que las reglas de negocio lo permitan.
 
-La indisponibilidad del servicio mock no deberá impedir operaciones de asesoría que no dependan de esa información.
+No se considera una conexión real con la infraestructura académica de Horizon University.
 
-### 7.5. Responsabilidad del adaptador
+## 4. Comunicaciones, configuración y seguridad
 
-La comunicación con el servicio mock se realizará mediante el SIS Integration Adapter, que forma parte de `C-API`.
+### 4.1. Comunicaciones de red
 
-El adaptador deberá:
-
-- Preparar las solicitudes.
-- Validar las respuestas.
-- Traducir los datos al formato utilizado por DH-01.
-- Manejar errores y tiempos de espera.
-- Evitar que los módulos de negocio dependan directamente del contrato externo.
-
-## 8. Red y comunicaciones
-
-Las comunicaciones previstas serán las siguientes:
-
-| Origen | Destino | Protocolo previsto | Observación |
+| Origen | Destino | Protocolo | Propósito |
 |---|---|---|---|
-| Navegador | N-APP / C-WEB | HTTPS | Acceso de los usuarios y entrega de archivos web. |
-| C-WEB | C-API | REST / JSON sobre HTTPS desde el navegador; conexión interna configurable detrás del proxy | Operaciones funcionales y comunicación lógica con el backend. |
-| C-API | C-DB | Protocolo PostgreSQL / SQL | Consultas y transacciones persistentes. |
-| C-API | X-SIS | HTTP(S) / JSON | Integración simulada mediante adaptador. |
+| Navegador | N-APP / C-WEB | HTTPS | Acceso al sistema y entrega de archivos web. |
+| C-WEB | C-API | REST / JSON sobre HTTPS desde el navegador, con enrutamiento interno configurable | Consultar y modificar recursos autorizados. |
+| C-API | C-DB | Protocolo PostgreSQL / SQL | Consultar y persistir información. |
+| C-API | X-SIS | HTTP(S) / JSON | Consultar información académica sintética. |
 
-### 8.1. Acceso público
+La configuración distinguirá cuatro ámbitos:
 
-El punto de entrada público será el servidor HTTP que aloje la interfaz y dirija las solicitudes de API.
+- **Acceso público:** navegador y punto de entrada HTTPS.
+- **Aplicación:** servidor HTTP, reverse proxy y proceso backend.
+- **Datos:** PostgreSQL con conectividad restringida.
+- **Dependencia simulada:** servicio mock consultado mediante el adaptador.
 
-No se requiere que PostgreSQL ni el puerto interno de Node.js estén expuestos directamente a Internet.
+Esta separación representa límites de responsabilidad y confianza, sin exigir redes físicas independientes para cada ámbito durante el prototipo.
 
-En caso de habilitar acceso remoto al entorno de demostración, las solicitudes deberán utilizar un punto de entrada seguro.
+Los puertos, dominios, certificados y direcciones concretos se definirán durante la preparación del entorno.
 
-### 8.2. Comunicación interna
-
-Las comunicaciones entre el backend y PostgreSQL deberán restringirse al entorno autorizado.
-
-Cuando ambos procesos estén en el mismo equipo, podrá utilizarse una conexión local.
-
-Cuando se ejecuten en nodos físicos diferentes, deberán establecerse controles de red y cifrado apropiados.
-
-La comunicación del reverse proxy con el backend también dependerá de la ubicación física de ambos procesos.
-
-### 8.3. Comunicación con X-SIS
-
-El backend accederá al simulador mediante el SIS Integration Adapter.
-
-La dirección del servicio será configurable para evitar dependencias rígidas en el código.
-
-Los errores y tiempos de espera deberán manejarse de manera controlada.
-
-La integración utilizará datos ficticios y no representará una conexión institucional real.
-
-### 8.4. Puertos y direccionamiento
-
-Los números concretos de puertos, dominios, direcciones y certificados se definirán durante la configuración del entorno.
-
-No se consideran decisiones arquitectónicas obligatorias en esta etapa.
-
-Sin embargo, la implementación deberá documentar la configuración utilizada para permitir la reproducción de las pruebas.
-
-### 8.5. Límites de red
-
-El diseño deberá distinguir entre:
-
-- **Zona de acceso del usuario:** navegador y punto de entrada HTTPS.
-- **Zona de aplicación:** proceso del backend y servicios internos.
-- **Zona de datos:** conexión restringida a PostgreSQL.
-- **Dependencia externa simulada:** servicio mock consultado mediante el adaptador.
-
-Esta separación corresponde a responsabilidades de seguridad y conectividad; no obliga a implementar una red física independiente para cada zona durante el prototipo.
-
-## 9. Configuración y gestión de secretos
+### 4.2. Configuración y secretos
 
 Los parámetros de configuración deberán mantenerse separados del código fuente.
 
-Entre ellos podrán encontrarse:
+Entre ellos se incluyen:
 
-- Dirección y puerto del backend.
-- Dirección de PostgreSQL.
-- Credenciales de base de datos.
-- Secretos necesarios para la gestión de sesiones.
-- Dirección del simulador del SIS.
-- Parámetros de tiempo de espera.
-- Configuración de registros técnicos.
+- Puerto y entorno de ejecución del backend.
+- Dirección y credenciales de PostgreSQL.
+- Configuración de autenticación y sesiones.
+- Dirección del simulador SIS.
+- Tiempos de espera de integración.
+- Parámetros de registros técnicos.
+- Configuración del servidor HTTP y del reverse proxy.
 
-Los secretos no deberán incorporarse a repositorios públicos ni quedar incluidos en archivos distribuidos al navegador.
+La aplicación deberá permitir configuraciones diferenciadas para desarrollo, prueba y demostración.
 
-Los usuarios ficticios deberán utilizar credenciales de prueba y sus contraseñas deberán almacenarse de forma segura.
+Los secretos no deberán almacenarse en repositorios públicos ni distribuirse a los navegadores.
 
-Los valores usados en demostraciones no deberán confundirse con credenciales institucionales reales.
+Las contraseñas de usuarios ficticios deberán almacenarse mediante algoritmos de hash seguros.
 
-### 9.1. Configuración por entorno
+Las credenciales del proceso backend deberán respetar el principio de privilegio mínimo.
 
-La aplicación deberá permitir separar los valores de configuración de desarrollo, prueba y demostración.
+### 4.3. Seguridad del despliegue
 
-Por ejemplo, las direcciones del backend y del simulador del SIS podrán variar entre entornos sin requerir modificaciones en la lógica de negocio.
+La arquitectura combinará controles de infraestructura con las políticas de seguridad implementadas en `C-API`.
 
-La configuración deberá evitar referencias rígidas a direcciones locales que impidan reproducir el despliegue en otro equipo.
+**Autenticación y autorización**
 
-### 9.2. Principio de privilegio mínimo
+Las operaciones protegidas requerirán una sesión válida y permisos acordes con el rol, el recurso solicitado y el ámbito institucional autorizado.
 
-El proceso del backend deberá utilizar credenciales con los privilegios necesarios para sus operaciones habituales.
+Las cookies de sesión deberán utilizar atributos de seguridad apropiados y las operaciones que modifican datos estarán protegidas frente a CSRF.
 
-Las operaciones administrativas de PostgreSQL deberán manejarse separadamente cuando corresponda.
+**Cifrado de comunicaciones**
 
-Esta medida reducirá el impacto potencial de errores de configuración o accesos indebidos.
+El acceso desde navegadores utilizará HTTPS en los entornos desplegados.
 
-## 10. Disponibilidad y recuperación
+Las conexiones internas se protegerán según su ubicación y nivel de exposición.
 
-### 10.1. Fallos del backend
+**Protección de PostgreSQL**
 
-Si el proceso Node.js se detiene, la aplicación dejará de atender temporalmente las operaciones que dependan de la API.
+La base de datos estará disponible únicamente para los procesos autorizados.
 
-La información previamente confirmada deberá permanecer almacenada en PostgreSQL.
+No se expondrá directamente al navegador y utilizará credenciales específicas para las operaciones del backend.
 
-El mecanismo concreto para reiniciar el backend se definirá durante el despliegue.
+**Protección de información**
 
-### 10.2. Fallos de PostgreSQL
+El entorno utilizará datos sintéticos y evitará registrar contraseñas, tokens de sesión o contenido confidencial innecesario.
 
-Si PostgreSQL no está disponible, las operaciones que requieran consultar o modificar datos persistentes podrán fallar.
+Las notas internas se protegerán mediante autorización contextual.
 
-El backend deberá comunicar esos errores sin afirmar que se han confirmado operaciones que no pudieron completarse.
+**Manejo de errores**
 
-La recuperación dependerá de la infraestructura, el estado del almacenamiento y los respaldos disponibles.
+Los mensajes enviados al navegador no deberán revelar credenciales, cadenas de conexión, secretos, contenido de otros casos o detalles internos innecesarios.
 
-### 10.3. Fallos del SIS simulado
+Los registros técnicos utilizados para diagnóstico se mantendrán diferenciados de los eventos de auditoría de negocio definidos en ADR-005.
 
-La indisponibilidad de `X-SIS` deberá afectar únicamente las operaciones que necesiten sus respuestas.
+## 5. Disponibilidad, recuperación y actualización
 
-Los procesos independientes de esa integración deberán poder continuar si las reglas de negocio lo permiten.
+### 5.1. Comportamiento ante fallos
 
-### 10.4. Reinicios y persistencia
+**Fallo del backend**
 
-Se deberá comprobar que un reinicio controlado de `C-API` no elimine los casos previamente confirmados.
+Si el proceso Node.js se detiene, las operaciones dependientes de la API dejarán de estar disponibles temporalmente.
 
-También deberá verificarse que las operaciones incompletas no queden registradas como exitosas.
+Los datos previamente confirmados deberán permanecer almacenados en PostgreSQL.
 
-Estas verificaciones se relacionan con QS-07.
+**Fallo de PostgreSQL**
 
-### 10.5. Alcance de disponibilidad
+Las operaciones que necesiten acceder a la base de datos podrán fallar mientras el servicio esté indisponible.
 
-No se promete alta disponibilidad ni recuperación automática frente a cualquier fallo.
+El backend deberá comunicar los errores sin confirmar falsamente operaciones que no pudieron completarse.
 
-La configuración propuesta prioriza viabilidad y claridad operativa para el prototipo.
+**Fallo del SIS simulado**
 
-Los objetivos de recuperación y los procedimientos correspondientes deberán definirse de acuerdo con los recursos y criterios de validación disponibles.
+La indisponibilidad de `X-SIS` deberá afectar únicamente a las operaciones que dependan de su información.
 
-### 10.6. Respaldos y restauración
+Las funcionalidades independientes podrán continuar cuando las reglas de negocio lo permitan.
 
-La arquitectura deberá contemplar una estrategia básica para respaldar los datos de prueba de PostgreSQL.
+El diseño no presupone alta disponibilidad ni recuperación automática frente a cualquier tipo de fallo. La configuración propuesta prioriza la viabilidad operacional para el entorno de prueba.
 
-El procedimiento deberá identificar:
+### 5.2. Persistencia, respaldos y restauración
 
-- Qué información se respalda.
-- Cómo se genera el respaldo.
-- Dónde se conserva.
-- Quién puede acceder a él.
-- Cómo se ejecuta una restauración.
-- Cómo se verifica que la información restaurada sea consistente.
+La persistencia cotidiana y la recuperación frente a pérdida de datos son responsabilidades diferentes.
 
-La existencia de respaldos no deberá darse por demostrada hasta ejecutar una prueba de restauración satisfactoria.
+Un reinicio de `C-API` no deberá eliminar los registros confirmados.
 
-## 11. Seguridad del despliegue
+Sin embargo, la recuperación frente a fallos de PostgreSQL o pérdida de almacenamiento requerirá procedimientos adicionales de respaldo y restauración.
 
-La arquitectura deberá aplicar controles tanto en el código como en el entorno de ejecución.
+La estrategia básica deberá definir:
 
-### 11.1. Protección del acceso
+- Información incluida en los respaldos.
+- Procedimiento de generación.
+- Ubicación y protección de las copias.
+- Responsables autorizados.
+- Procedimiento de restauración.
+- Verificación de integridad de los datos restaurados.
 
-Las operaciones protegidas requerirán autenticación válida.
+Para demostrar la recuperación será necesario restaurar un respaldo en un entorno controlado y comprobar los registros, relaciones y eventos correspondientes.
 
-El backend verificará los permisos según el rol del usuario, su relación con el caso y el tipo de información solicitada.
+### 5.3. Preparación y actualización del entorno
 
-Esta responsabilidad responde a ADR-004.
+Para ejecutar la solución deberán estar disponibles:
 
-### 11.2. Cifrado de comunicaciones
-
-Las comunicaciones accesibles desde navegadores deberán utilizar HTTPS en los entornos desplegados.
-
-Las conexiones internas deberán protegerse según su exposición y características de red.
-
-El uso de un reverse proxy permitirá centralizar la configuración del punto de entrada, aunque será necesario comprobar que el cifrado esté correctamente configurado.
-
-### 11.3. Aislamiento de la base de datos
-
-PostgreSQL no deberá aceptar conexiones públicas innecesarias.
-
-El backend utilizará credenciales específicas para sus operaciones.
-
-Los controles de red deberán limitar los orígenes autorizados para conectarse a la base de datos.
-
-### 11.4. Protección de la información
-
-No se utilizarán registros académicos reales.
-
-Los datos sintéticos deberán permitir demostrar las funcionalidades sin exponer información institucional confidencial.
-
-Las notas internas y los registros restringidos deberán permanecer protegidos mediante las políticas de autorización definidas para el sistema.
-
-### 11.5. Registros técnicos
-
-Los registros de ejecución podrán utilizarse para diagnosticar fallos.
-
-No deberán almacenar contraseñas, tokens de sesión ni contenidos confidenciales innecesarios.
-
-Los registros técnicos se distinguirán de los eventos de auditoría de negocio definidos en ADR-005.
-
-### 11.6. Manejo de errores
-
-Los mensajes de error enviados al navegador no deberán exponer:
-
-- Credenciales.
-- Cadenas de conexión.
-- Secretos de sesión.
-- Información confidencial de otros casos.
-- Detalles internos innecesarios de la infraestructura.
-
-Los errores relevantes podrán registrarse para diagnóstico mediante mecanismos adecuados de protección.
-
-## 12. Despliegue y actualización
-
-### 12.1. Preparación del entorno
-
-Antes de ejecutar la solución deberán estar disponibles:
-
-- Un entorno compatible con Node.js.
-- Los archivos compilados de React.
+- Entorno compatible con Node.js.
+- Aplicación React compilada.
 - PostgreSQL configurado.
-- Las variables de entorno necesarias.
-- Las estructuras de base de datos requeridas.
-- Los datos ficticios de prueba.
-- El servicio mock del SIS, cuando sea necesario.
+- Variables de entorno necesarias.
+- Esquema de base de datos actualizado.
+- Datos ficticios de prueba.
+- Servicio mock del SIS para los escenarios que lo requieran.
 
-### 12.2. Inicio de servicios
+El inicio de los procesos deberá considerar las dependencias entre servicios.
 
-El inicio de los servicios deberá considerar sus dependencias.
+Las modificaciones del esquema persistente se gestionarán mediante migraciones controladas y documentadas.
 
-El backend necesitará una conexión válida a la base de datos para ejecutar operaciones persistentes.
+Las actualizaciones deberán mantener la compatibilidad entre la aplicación React, los contratos de `C-API`, la estructura de PostgreSQL y el contrato del simulador SIS.
 
-Las operaciones de consulta al SIS se habilitarán mediante la configuración del adaptador.
+Las instrucciones de ejecución deberán permitir reproducir el entorno, incluyendo dependencias, configuración, comandos de inicio, preparación de datos y comprobaciones básicas.
 
-El sistema deberá proporcionar un comportamiento controlado cuando alguna dependencia obligatoria no esté disponible.
+Las herramientas específicas de automatización y supervisión se seleccionarán según las necesidades reales del proyecto.
 
-### 12.3. Migraciones de base de datos
+## 6. Riesgos y verificación del despliegue
 
-Los cambios en la estructura persistente deberán gestionarse mediante un procedimiento controlado de migraciones.
+### 6.1. Riesgos arquitectónicos
 
-No se recomienda realizar modificaciones manuales no documentadas sobre la base de datos del prototipo.
-
-Las migraciones deberán mantener consistencia con el modelo de dominio y las versiones del backend.
-
-### 12.4. Actualizaciones
-
-Las actualizaciones deberán considerar la compatibilidad entre:
-
-- Aplicación React.
-- Contratos del Backend API.
-- Estructura de PostgreSQL.
-- Contrato del SIS simulado.
-
-Una modificación de API que afecte a `C-WEB` deberá coordinarse con la versión correspondiente de la interfaz.
-
-### 12.5. Automatización
-
-Podrán utilizarse herramientas para automatizar compilación, pruebas y despliegue.
-
-La selección de esas herramientas no constituye una decisión cerrada en esta vista.
-
-Su adopción deberá justificarse según el alcance y los recursos del proyecto.
-
-### 12.6. Reproducibilidad
-
-La configuración y las instrucciones de ejecución deberán documentarse para que el equipo pueda reproducir el entorno de demostración.
-
-Se recomienda definir:
-
-- Dependencias de software.
-- Variables de configuración necesarias.
-- Comandos de instalación y ejecución.
-- Procedimiento de preparación de PostgreSQL.
-- Carga de datos sintéticos.
-- Ejecución del servicio mock.
-- Procedimiento básico de comprobación del sistema.
-
-Estos pasos deberán mantenerse actualizados cuando cambie la implementación.
-
-## 13. Riesgos del despliegue
-
-| Riesgo | Consecuencia potencial | Mitigación propuesta |
+| Riesgo | Consecuencia | Mitigación propuesta |
 |---|---|---|
-| Exposición pública de PostgreSQL | Acceso no autorizado a información | Restringir conexiones y privilegios. |
-| Configuración incorrecta de HTTPS | Tráfico vulnerable durante el acceso | Verificar certificados y configuración de transporte. |
-| Secretos incluidos en el código | Compromiso de credenciales | Utilizar configuración externa y controles de acceso. |
-| Reinicios sin persistencia adecuada | Pérdida de información confirmada | Verificar almacenamiento y recuperación. |
-| Falta de respaldos | Dificultad para restaurar datos | Definir procedimientos de respaldo y restauración. |
-| Dependencia excesiva de X-SIS | Interrupción de operaciones autónomas | Aislar integración y manejar errores. |
-| Recursos insuficientes del servidor | Lentitud o fallos | Validar consumo bajo carga sintética. |
-| Migraciones incompatibles | Fallos de aplicación o datos | Aplicar migraciones controladas y comprobar compatibilidad. |
-| Despliegue sin separación de permisos | Acceso técnico excesivo | Aplicar privilegios mínimos. |
-| Configuración interna expuesta al navegador | Divulgación de secretos y detalles sensibles | Separar configuración del cliente y del servidor. |
-| Falta de documentación del entorno | Dificultad para reproducir las pruebas | Documentar configuración, dependencias y procedimientos. |
+| PostgreSQL expuesto públicamente | Acceso no autorizado | Restringir conexiones y privilegios. |
+| Configuración incorrecta de HTTPS | Comunicación insegura | Verificar cifrado y certificados. |
+| Secretos incluidos en el código | Compromiso de credenciales | Utilizar configuración externa. |
+| Reinicios sin persistencia adecuada | Pérdida de información | Comprobar conservación de datos confirmados. |
+| Falta de respaldos | Recuperación limitada | Definir y comprobar restauraciones. |
+| Dependencia excesiva de X-SIS | Interrupción de procesos autónomos | Aislar integración y manejar fallos. |
+| Recursos insuficientes | Lentitud e indisponibilidad | Evaluar consumo con cargas sintéticas. |
+| Migraciones incompatibles | Fallos y pérdida de consistencia | Utilizar migraciones controladas. |
+| Permisos técnicos excesivos | Acceso indebido | Aplicar privilegios mínimos. |
+| Configuración interna expuesta al cliente | Divulgación de secretos | Separar configuración pública y privada. |
+| Entorno no reproducible | Dificultad de demostración | Documentar procedimientos y dependencias. |
 
-Estos riesgos se consideran durante el diseño y deberán evaluarse durante la implementación y las pruebas.
+Estos riesgos se vinculan con el seguimiento general documentado en `project-status.md`.
 
-Las mitigaciones propuestas no se considerarán implementadas hasta contar con evidencia correspondiente.
+### 6.2. Verificación funcional
 
-## 14. Verificación del despliegue
-
-La arquitectura propuesta deberá verificarse mediante actividades reproducibles.
-
-### 14.1. Verificaciones funcionales
-
-Se comprobará que:
+La validación deberá comprobar que:
 
 - El navegador puede cargar `C-WEB`.
 - `C-WEB` puede comunicarse con `C-API`.
-- `C-API` puede conectarse a PostgreSQL.
-- Los usuarios de prueba pueden autenticarse.
-- Los permisos se verifican en el backend.
-- Los casos se almacenan y recuperan correctamente.
-- El backend puede consultar el simulador del SIS cuando corresponde.
+- `C-API` puede conectarse correctamente con PostgreSQL.
+- Los usuarios ficticios pueden autenticarse.
+- La autorización se aplica en el backend.
+- Los casos pueden almacenarse y recuperarse.
+- El backend puede consultar `X-SIS` mediante el adaptador.
 
-### 14.2. Verificaciones de seguridad
-
-Se comprobará que:
-
-- PostgreSQL no está accesible directamente desde el navegador.
-- Las operaciones protegidas rechazan solicitudes no autenticadas.
-- Las respuestas no exponen notas internas a usuarios sin permiso.
-- Los secretos no se distribuyen al cliente web.
-- Los registros técnicos no contienen credenciales sensibles.
-- El punto de entrada utiliza HTTPS cuando el entorno está expuesto mediante red.
-
-### 14.3. Verificaciones de fallos
+### 6.3. Verificación de seguridad
 
 Se comprobará que:
 
-- Los datos confirmados sobreviven a un reinicio del backend.
-- Una operación fallida no se informa como confirmada.
-- La indisponibilidad de `X-SIS` genera una respuesta controlada.
-- Los errores de conexión a PostgreSQL no exponen información interna innecesaria.
-- Los cambios que requieren auditoría se confirman de forma consistente.
-- Las operaciones que no dependen del SIS pueden continuar cuando el simulador no está disponible.
+- PostgreSQL no esté expuesto directamente al navegador.
+- Las operaciones protegidas rechacen sesiones inválidas.
+- Los usuarios no accedan a información fuera de sus permisos.
+- Las notas internas no se entreguen a estudiantes.
+- Los secretos permanezcan fuera de los archivos distribuidos al cliente.
+- Las cookies y los controles CSRF cumplan el diseño de seguridad.
+- Los registros técnicos no incluyan credenciales sensibles.
+- Las conexiones públicas utilicen HTTPS en el entorno desplegado.
 
-### 14.4. Verificación de recuperación
+### 6.4. Verificación de fallos y recuperación
 
-Cuando se implemente el procedimiento correspondiente, se deberá comprobar:
+Se comprobará que:
 
-1. La creación de un conjunto conocido de datos sintéticos.
-2. La generación de un respaldo.
-3. La restauración en un entorno de prueba.
-4. La verificación de registros, relaciones y eventos relevantes.
-5. La documentación del resultado.
+- Los datos confirmados sobrevivan al reinicio del backend.
+- Las operaciones fallidas no se informen como exitosas.
+- La indisponibilidad de `X-SIS` produzca una respuesta controlada.
+- Las operaciones independientes del simulador puedan continuar.
+- Los errores de PostgreSQL no expongan información interna.
+- Los cambios de negocio y su auditoría obligatoria mantengan consistencia.
+- Un respaldo pueda restaurarse y conservar los registros esperados.
 
-Una copia de respaldo que no haya sido restaurada y comprobada no será suficiente para demostrar la capacidad de recuperación.
+La comprobación de restauración utilizará un conjunto conocido de datos sintéticos, un respaldo verificable y una revisión de las relaciones y eventos almacenados.
 
-### 14.5. Evidencias
+### 6.5. Evidencias de validación
 
-Las pruebas podrán generar:
+Las evidencias previstas podrán incluir:
 
 - Capturas del sistema ejecutándose.
 - Registros de inicio de servicios.
 - Resultados de pruebas de API.
-- Resultados de pruebas de persistencia.
-- Comprobaciones de acceso restringido.
-- Evidencias del manejo de fallos simulados.
-- Resultados de respaldo y restauración cuando se realicen.
+- Comprobaciones de autorización.
+- Resultados de persistencia y reinicio.
+- Evidencias de fallos simulados.
+- Resultados de respaldo y restauración.
 
-Estas evidencias se almacenarán en `validation/evidence/`.
+Los procedimientos y criterios detallados se encuentran en el [Plan de Validación](../validation/test-plan.md), mientras que los resultados de ejecución se documentarán en [Validation Findings](../validation/findings.md).
 
-Los controles descritos son objetivos de validación y no resultados ya comprobados.
+## 7. Trazabilidad y documentos relacionados
 
-## 15. Trazabilidad
+La propuesta de despliegue mantiene relación con los siguientes elementos arquitectónicos:
 
-| Elemento | Relación con el despliegue |
+| Elemento | Relación |
 |---|---|
-| AD-01 | Integridad de las operaciones y persistencia. |
+| AD-01 | Integridad y persistencia de operaciones. |
 | AD-02 | Protección del acceso y de la información. |
 | AD-03 | Conservación de eventos de auditoría. |
 | AD-04 | Consistencia del seguimiento y la resolución. |
-| AD-05 | Separación modular y mantenimiento. |
-| AD-06 | Viabilidad de consultas operacionales. |
-| AD-07 | Factibilidad y recuperación del entorno. |
-| ADR-001 | Despliegue de un backend monolítico modular. |
-| ADR-002 | Persistencia mediante PostgreSQL. |
-| ADR-003 | Operaciones consistentes y transaccionales. |
-| ADR-004 | Autenticación interna y autorización contextual. |
-| ADR-005 | Auditoría persistente. |
-| QS-01 | Seguridad. |
+| AD-05 | Separación modular y mantenibilidad. |
+| AD-06 | Consultas y supervisión operacional. |
+| AD-07 | Viabilidad y recuperación del entorno. |
+| QS-01 | Seguridad y confidencialidad. |
 | QS-02 | Integridad y concurrencia. |
 | QS-03 | Auditabilidad. |
 | QS-04 | Rendimiento. |
 | QS-05 | Mantenibilidad. |
 | QS-06 | Usabilidad. |
 | QS-07 | Persistencia y recuperación. |
-| V-CTX | Contexto y límites del sistema. |
-| V-CON | Contenedores ejecutables y almacenes. |
-| V-CMP | Componentes internos del backend. |
-| V-DEP | Distribución de los contenedores en nodos lógicos. |
 
-### 15.1. Documentos relacionados
+**Decisiones arquitectónicas relacionadas:**
 
-- [Vista de Contexto](system-context.md).
-- [Vista de Contenedores](container-view.md).
-- [Vista de Componentes](component-view.md).
-- [Decisiones Arquitectónicas](../adr/README.md).
-- [Escenarios de Calidad](../quality-scenarios.md).
-- [Supuestos de Despliegue](../deployment-assumptions.md).
-- [Diseño de Seguridad](../design/security.md).
-- [Diseño de Interfaces](../design/interfaces.md).
-- [Plan de Pruebas](../validation/test-plan.md).
+- [ADR-001 — Modular Monolith Architecture](../adr/ADR-001.md)
+- [ADR-002 — Relational Database and Persistent Data Management](../adr/ADR-002.md)
+- [ADR-003 — Controlled Case Lifecycle and Transactional Consistency](../adr/ADR-003.md)
+- [ADR-004 — Authentication and Resource-Based Authorization](../adr/ADR-004.md)
+- [ADR-005 — Persistent Audit Trail and Case History](../adr/ADR-005.md)
 
-## 16. Conclusión
+**Vistas complementarias:**
 
-La vista de despliegue establece una distribución técnica propuesta para ejecutar el Academic Advising Case Management System.
+- [System Context View](system-context.md)
+- [Container View](container-view.md)
+- [Component View](component-view.md)
 
-La arquitectura contempla un nodo de aplicación (`N-APP`) que alojará `C-WEB` y `C-API`, un nodo lógico de datos (`N-DB`) que ejecutará PostgreSQL y un servicio mock (`N-MOCK` / `X-SIS`) que representará la integración con el SIS.
+**Documentos relacionados:**
 
-Esta distribución es compatible con la estrategia de monolito modular y permite ejecutar las funcionalidades principales sin depender de una infraestructura institucional real.
+- [Requirements and Drivers](../requirements-and-drivers.md)
+- [Quality Scenarios](../quality-scenarios.md)
+- [Deployment Assumptions](../deployment-assumptions.md)
+- [Security Design](../design/security.md)
+- [API Contracts](../design/interfaces.md)
+- [Validation Plan](../validation/test-plan.md)
+- [Traceability Matrix](../traceability.md)
 
-La separación entre `N-APP` y `N-DB` es lógica. Ambos podrán alojarse en un mismo equipo durante el prototipo, siempre que se mantengan los controles de acceso, persistencia y aislamiento necesarios.
+La vista de despliegue establece una distribución técnica compatible con la arquitectura de monolito modular seleccionada para DH-01.
 
-La autenticación permanecerá dentro del backend, mientras que la base de datos se protegerá mediante controles de conexión y privilegios.
+El nodo `N-APP` alojará la aplicación web y el backend, mientras que `N-DB` conservará la información persistente mediante PostgreSQL. El servicio `N-MOCK / X-SIS` representará una dependencia académica externa con datos sintéticos.
 
-La integración académica utilizará datos sintéticos y se mantendrá aislada mediante un adaptador.
+La separación lógica de responsabilidades permite ejecutar la solución en una infraestructura sencilla, sin impedir su evolución futura hacia nodos físicos independientes.
 
-Las comunicaciones con los navegadores utilizarán HTTPS en los entornos desplegados. Las conexiones internas se configurarán según la ubicación de los procesos y los requisitos de protección del entorno.
-
-El despliegue propuesto prioriza la simplicidad, la seguridad, la reproducibilidad y la capacidad de demostrar los comportamientos arquitectónicos relevantes.
-
-Los detalles de infraestructura, los recursos requeridos, los procedimientos de respaldo y las herramientas operacionales se desarrollarán en `deployment-assumptions.md`.
-
-La implementación y validación del prototipo permitirán determinar si esta configuración satisface los escenarios de calidad establecidos para DH-01.
+El diseño prioriza seguridad, integridad, reproducibilidad y capacidad de recuperación, manteniendo consistencia con las decisiones arquitectónicas, los escenarios de calidad y los mecanismos de validación definidos para DH-01.

@@ -1,7 +1,26 @@
+# Dependencies
 node_modules/
+
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
+
+# Build outputs
 dist/
+build/
 coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and OS
+.vscode/
+.idea/
 .DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak

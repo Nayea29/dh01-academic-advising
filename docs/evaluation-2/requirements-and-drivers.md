@@ -1,6 +1,6 @@
 # DH-01 — Academic Advising Case Management System
 
-# Requirements, Constraints and Architecture Drivers
+## Requirements, Constraints and Architecture Drivers
 
 ## 1. Propósito
 

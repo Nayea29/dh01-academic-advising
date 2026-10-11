@@ -1,254 +1,276 @@
 # DH-01 — Supuestos y Restricciones de Despliegue
-
-**Proyecto:** Academic Advising Case Management System  
-**Documento:** Deployment Assumptions and Constraints  
+ 
 **Vista relacionada:** V-DEP — Deployment View  
 **Decisiones relacionadas:** ADR-001, ADR-002, ADR-003, ADR-004 y ADR-005  
 **Architecture Driver principal:** AD-07 — Viabilidad de despliegue  
 **Escenario de calidad principal:** QS-07 — Persistencia y recuperación  
-**Estado:** Diseño propuesto, pendiente de validación
 
 ## 1. Propósito y alcance
 
-Este documento establece los supuestos técnicos, recursos y restricciones necesarios para desplegar y validar el Academic Advising Case Management System (DH-01).
+Este documento establece los supuestos técnicos, los recursos estimados y las restricciones necesarias para desplegar y validar el Academic Advising Case Management System (DH-01).
 
-La solución utilizará una arquitectura de monolito modular, compuesta por una aplicación web React, un backend Node.js + Express y una base de datos PostgreSQL. Adicionalmente, se contempla un servicio mock del Student Information System (SIS) para proporcionar datos académicos sintéticos.
+La solución utilizará una arquitectura de monolito modular compuesta por una aplicación web React, un backend Node.js + Express y una base de datos PostgreSQL. También se contempla un servicio mock del Student Information System (SIS) que proporcionará información académica sintética.
 
-El despliegue estará orientado a un entorno de desarrollo, pruebas y demostración. Su objetivo será permitir la ejecución de los flujos principales de gestión de casos y la validación de atributos de calidad como seguridad, integridad, auditabilidad, rendimiento y recuperación.
+El despliegue estará orientado a desarrollo, pruebas y demostración. Su finalidad será permitir la ejecución de los principales procesos de asesoría académica y la validación de atributos de calidad relacionados con seguridad, integridad, auditabilidad, rendimiento y recuperación.
 
-El prototipo utilizará usuarios ficticios y no requerirá acceso a los sistemas institucionales reales de Horizon University.
+El prototipo utilizará identidades ficticias y no requerirá acceso a los sistemas institucionales reales de Horizon University.
 
-Los siguientes supuestos delimitan la propuesta:
+Se establecen los siguientes supuestos:
 
-- **AS-DEP-01:** Se dispondrá de un equipo o servidor donde puedan instalarse las dependencias necesarias.
-- **AS-DEP-02:** El equipo tendrá permisos para configurar los servicios de aplicación y base de datos.
-- **AS-DEP-03:** Todos los datos académicos y las identidades utilizados serán sintéticos.
-- **AS-DEP-04:** La autenticación se implementará internamente en el backend.
-- **AS-DEP-05:** PostgreSQL será el sistema principal de persistencia.
-- **AS-DEP-06:** Los módulos de negocio se ejecutarán dentro de una única aplicación backend.
-- **AS-DEP-07:** La integración con el SIS se representará mediante un servicio mock independiente.
-- **AS-DEP-08:** Los nodos lógicos podrán compartir un mismo equipo físico durante el prototipo.
+| ID | Supuesto |
+|---|---|
+| AS-DEP-01 | Se dispondrá de un equipo o servidor compatible con las dependencias necesarias. |
+| AS-DEP-02 | Existirán permisos suficientes para configurar los servicios de aplicación y base de datos. |
+| AS-DEP-03 | Los usuarios y la información académica empleados serán sintéticos. |
+| AS-DEP-04 | La autenticación se administrará internamente en el backend. |
+| AS-DEP-05 | PostgreSQL será el sistema principal de persistencia. |
+| AS-DEP-06 | Los módulos de negocio se ejecutarán dentro de una única aplicación backend. |
+| AS-DEP-07 | La integración con el SIS se representará mediante un servicio mock independiente. |
+| AS-DEP-08 | Los nodos lógicos podrán compartir un mismo equipo físico durante el prototipo. |
 
-No se presupone la disponibilidad de infraestructura institucional, servidores dedicados, credenciales universitarias ni integraciones reales.
+Estos supuestos no implican que se disponga de servidores institucionales, credenciales reales, infraestructura dedicada o integraciones oficiales.
 
 ## 2. Infraestructura y tecnologías propuestas
 
 La configuración de referencia contempla los siguientes elementos:
 
-| Identificador | Componente | Tecnología | Ubicación propuesta |
+| Identificador | Componente | Tecnología | Nodo lógico |
 |---|---|---|---|
-| C-WEB | Aplicación Web | React | N-APP |
+| C-WEB | Aplicación web | React | N-APP |
 | C-API | Backend API | Node.js + Express | N-APP |
-| C-DB | Base de Datos | PostgreSQL | N-DB |
-| X-SIS | Simulador del SIS | Servicio mock HTTP | N-MOCK |
+| C-DB | Base de datos | PostgreSQL | N-DB |
+| X-SIS | Simulador del SIS | Servicio HTTP mock | N-MOCK |
 
-`N-APP` y `N-DB` representan responsabilidades lógicas, no necesariamente equipos físicos independientes.
+`N-APP` y `N-DB` representan responsabilidades lógicas y no necesariamente servidores físicos independientes.
 
-Para simplificar el despliegue, se propone ejecutar los servicios en un único equipo de prueba, manteniendo separados los procesos y restringiendo el acceso a PostgreSQL.
+Para simplificar el despliegue, se propone ejecutar los servicios en un único equipo de prueba, manteniendo procesos separados y conexiones restringidas a PostgreSQL.
 
 ### 2.1. Recursos estimados
 
-Como punto de partida, se propone la siguiente capacidad:
+Como punto de partida para el prototipo se propone:
 
 | Recurso | Estimación inicial |
 |---|---|
 | CPU | 2 núcleos |
 | Memoria RAM | 4 GB |
 | Almacenamiento | 20 GB disponibles, preferiblemente SSD |
-| Sistema operativo | Linux o equivalente compatible |
-| Backend | Una instancia Node.js |
+| Sistema operativo | Linux o entorno equivalente compatible |
+| Backend | Una instancia de Node.js |
 | Base de datos | Una instancia PostgreSQL |
 | Simulador SIS | Un servicio mock independiente |
 
-Estas cifras son estimaciones para planificar el prototipo, no requisitos mínimos comprobados. Su suficiencia deberá verificarse durante las pruebas.
+Estas cifras son estimaciones para planificación, no requisitos mínimos comprobados.
+
+La suficiencia de estos recursos deberá evaluarse durante la implementación y las pruebas de rendimiento.
 
 ### 2.2. Estrategia de ejecución
 
-Se recomienda utilizar **Docker Compose**, si el entorno disponible lo permite, para facilitar la configuración y reproducción de los servicios.
+Se recomienda utilizar **Docker Compose** cuando el entorno disponible lo permita, para facilitar la configuración y reproducción de los servicios.
 
 Como alternativa, React, Node.js, PostgreSQL y el simulador podrán ejecutarse mediante instalaciones y procesos independientes.
 
-En cualquiera de los casos se deberá documentar:
+En cualquiera de las dos opciones deberán documentarse:
 
 - Versiones de las dependencias.
 - Procedimiento de instalación.
-- Configuración requerida.
-- Migraciones de base de datos.
-- Inicialización de usuarios y datos de prueba.
-- Comandos para iniciar los servicios.
+- Variables de configuración requeridas.
+- Migraciones de PostgreSQL.
+- Inicialización de usuarios y datos sintéticos.
+- Comandos de inicio y detención de servicios.
+- Procedimiento básico de comprobación de disponibilidad.
 
-El uso de Docker no modifica la estrategia arquitectónica de monolito modular establecida en ADR-001.
+El uso de Docker Compose no modifica la arquitectura de monolito modular seleccionada en ADR-001. Los componentes internos de `C-API` continuarán ejecutándose como una única aplicación backend.
 
 ## 3. Configuración, conectividad y seguridad
 
-La aplicación utilizará configuración externa al código fuente para administrar los parámetros del entorno.
+Los parámetros del entorno se mantendrán separados del código fuente mediante mecanismos apropiados de configuración.
 
-Las variables previstas incluyen:
+Las variables previstas son:
 
 | Variable de referencia | Propósito |
 |---|---|
 | `NODE_ENV` | Identificar el entorno de ejecución. |
-| `PORT` | Puerto interno de C-API. |
-| `DATABASE_URL` | Conexión a PostgreSQL. |
-| `SESSION_SECRET` | Secreto del mecanismo de sesión, si corresponde. |
-| `SIS_MOCK_BASE_URL` | Dirección del simulador del SIS. |
-| `SIS_REQUEST_TIMEOUT_MS` | Tiempo máximo de espera de la integración. |
-| `LOG_LEVEL` | Nivel de registros técnicos. |
+| `PORT` | Configurar el puerto interno del backend. |
+| `DATABASE_URL` | Establecer la conexión con PostgreSQL. |
+| `SESSION_SECRET` | Proteger mecanismos de sesión que requieran un secreto de servidor. |
+| `SIS_MOCK_BASE_URL` | Indicar la dirección del simulador SIS. |
+| `SIS_REQUEST_TIMEOUT_MS` | Definir el tiempo máximo de espera de la integración. |
+| `LOG_LEVEL` | Configurar el nivel de registros técnicos. |
 
 Los nombres son referenciales y podrán ajustarse durante la implementación.
+
+Conforme a ADR-004, la autenticación utilizará sesiones opacas de servidor, persistidas mediante la tabla técnica `SESSION` en PostgreSQL. El identificador reutilizable de sesión no deberá almacenarse directamente en texto claro.
 
 ### 3.1. Comunicaciones
 
 | Origen | Destino | Comunicación prevista |
 |---|---|---|
 | Navegador | C-WEB | HTTPS |
-| Aplicación web | C-API | REST / JSON mediante HTTPS desde el navegador |
+| Aplicación web | C-API | REST / JSON sobre HTTPS desde el navegador |
 | Reverse proxy | Backend Node.js | Conexión interna restringida |
 | C-API | C-DB | Protocolo PostgreSQL / SQL |
-| C-API | X-SIS | HTTP(S) / JSON mediante adaptador |
+| C-API | X-SIS | HTTP(S) / JSON mediante SIS Integration Adapter |
 
-Se propone utilizar un servidor HTTP o reverse proxy para servir React y dirigir las solicitudes de API hacia Node.js.
+Se propone utilizar un servidor HTTP o reverse proxy para entregar la aplicación React y dirigir las solicitudes de API hacia Node.js.
 
-La base de datos no deberá exponerse públicamente. Cuando PostgreSQL y el backend se ejecuten en el mismo equipo, podrá utilizarse una conexión local restringida.
+PostgreSQL no deberá exponerse públicamente. Cuando la base de datos y el backend se ejecuten en el mismo equipo, podrá utilizarse una conexión local restringida.
 
-El simulador del SIS estará separado del backend como servicio de prueba, aunque podrá ejecutarse en la misma máquina física.
+El simulador SIS funcionará como servicio independiente del proceso `C-API`, aunque podrá compartir infraestructura física con los demás elementos.
+
+Las conexiones internas que atraviesen redes no confiables deberán contar con protección de transporte apropiada.
 
 ### 3.2. Controles de seguridad
 
-El despliegue deberá considerar:
+El despliegue deberá contemplar:
 
 - Autenticación interna mediante usuarios ficticios.
-- Contraseñas almacenadas mediante algoritmos de hash seguros.
-- Autorización aplicada por el backend según roles y recursos.
-- Protección de las comunicaciones externas mediante HTTPS.
+- Contraseñas almacenadas utilizando un algoritmo de hash seguro, como Argon2id.
+- Sesiones opacas administradas por el servidor y cookies con atributos de seguridad.
+- Protección CSRF en las operaciones autenticadas que modifiquen información.
+- Autorización contextual aplicada desde el backend.
+- Comunicaciones públicas protegidas mediante HTTPS.
 - Restricción de conexiones a PostgreSQL.
-- Gestión de secretos fuera del código fuente.
-- Separación de permisos técnicos y permisos de acceso a información académica.
+- Administración de secretos fuera del repositorio.
+- Separación entre permisos técnicos y acceso a información académica.
 - Registros técnicos sin contraseñas, tokens ni contenido confidencial innecesario.
 
-La utilización de datos sintéticos no elimina la necesidad de implementar controles de seguridad.
+La utilización de datos sintéticos no elimina la obligación de aplicar controles de seguridad.
 
-Los mecanismos concretos de autenticación, autorización y protección de información se detallarán en `design/security.md`.
+Los mecanismos de identidad, autorización, sesiones y privacidad se detallan en [Security Design](design/security.md).
 
 ## 4. Persistencia, respaldos y recuperación
 
-PostgreSQL será responsable de conservar la información relacionada con usuarios, casos, asignaciones, seguimiento, notas y eventos de auditoría.
+PostgreSQL conservará la información relacionada con usuarios, sesiones, casos, clasificaciones, asignaciones, seguimientos, notas, recomendaciones y eventos de auditoría.
 
-La persistencia deberá mantenerse independientemente de los reinicios del backend.
+La información confirmada deberá permanecer disponible después de reiniciar `C-API`.
 
-Si se utilizan contenedores Docker, PostgreSQL deberá contar con almacenamiento persistente correctamente configurado.
+Cuando se utilice Docker Compose, PostgreSQL deberá contar con un volumen persistente correctamente configurado. Si la base de datos se ejecuta directamente en el sistema operativo, su directorio de datos deberá disponer de almacenamiento persistente.
 
 ### 4.1. Integridad
 
-Las operaciones que modifiquen varios registros relacionados deberán mantener consistencia mediante transacciones.
+Las operaciones que modifiquen registros relacionados deberán mantener consistencia mediante transacciones.
 
-Por ejemplo, una reasignación y su evento obligatorio de auditoría deberán confirmarse dentro de la misma transacción.
+Por ejemplo, una reasignación deberá confirmar conjuntamente la finalización de la asignación anterior, el registro del nuevo responsable, la actualización de versión del caso y el evento obligatorio de auditoría.
 
-La gestión de estados y operaciones atómicas seguirá las decisiones establecidas en ADR-003 y ADR-005.
+La consistencia del ciclo de vida seguirá ADR-003, mientras que la conservación de eventos de negocio se regirá por ADR-005.
+
+Las restricciones de integridad y el control de concurrencia se desarrollan en [Domain and Data Model](design/domain-and-data.md).
 
 ### 4.2. Respaldos
 
-Se propone establecer un procedimiento básico de respaldo de PostgreSQL utilizando herramientas compatibles, como `pg_dump`.
+Se propone un procedimiento básico de respaldo de PostgreSQL utilizando herramientas compatibles, como `pg_dump`.
 
-El procedimiento deberá documentar cómo generar la copia y dónde almacenarla de manera segura.
+El procedimiento deberá documentar:
+
+- Información y bases de datos incluidas.
+- Comando o mecanismo de generación.
+- Ubicación del archivo de respaldo.
+- Restricciones de acceso.
+- Método de transferencia, si corresponde.
+- Procedimiento de restauración.
+
+Los respaldos contendrán únicamente información sintética del entorno de prueba y deberán protegerse frente a accesos no autorizados.
+
+La existencia de un archivo de respaldo no será suficiente para demostrar la capacidad de recuperación.
 
 ### 4.3. Recuperación
 
-La capacidad de recuperación deberá verificarse mediante una prueba que contemple:
+La validación de recuperación contemplará el siguiente procedimiento:
 
-1. Crear datos sintéticos conocidos.
-2. Generar un respaldo.
-3. Restaurarlo en una base de prueba.
+1. Crear un conjunto conocido de datos sintéticos.
+2. Generar un respaldo de PostgreSQL.
+3. Restaurarlo en una base de datos de prueba.
 4. Consultar los registros recuperados.
-5. Verificar relaciones y eventos relevantes.
-6. Documentar los resultados.
+5. Verificar relaciones, asignaciones y eventos de auditoría.
+6. Documentar el resultado de la restauración.
 
-También deberá comprobarse que un reinicio controlado de `C-API` no elimina los datos previamente confirmados.
+Adicionalmente, deberá comprobarse que un reinicio controlado de `C-API` no elimine información previamente confirmada.
 
-El prototipo no contempla inicialmente alta disponibilidad ni recuperación automática ante cualquier fallo físico.
+El prototipo no presupone alta disponibilidad, replicación de base de datos ni recuperación automática ante cualquier fallo físico.
 
-La persistencia y recuperación se relacionan con el escenario QS-07. La existencia de PostgreSQL o de un archivo de respaldo no demuestra por sí sola su cumplimiento.
+Las pruebas de persistencia y restauración servirán como evidencia del escenario QS-07.
 
 ## 5. Riesgos y restricciones operacionales
 
-Los principales riesgos identificados son:
+Los riesgos principales del despliegue propuesto son:
 
-| Riesgo | Consecuencia | Medida propuesta |
+| Riesgo | Consecuencia | Mitigación propuesta |
 |---|---|---|
-| Recursos insuficientes | Respuestas lentas o interrupciones | Ejecutar pruebas de carga y ajustar recursos. |
-| PostgreSQL expuesto públicamente | Acceso no autorizado | Restringir conectividad y permisos. |
-| Secretos incluidos en el repositorio | Compromiso de credenciales | Gestionarlos mediante configuración externa. |
-| Falta de almacenamiento persistente | Pérdida de datos después de reinicios | Configurar y verificar la persistencia. |
-| Ausencia de respaldos comprobados | Dificultad para restaurar información | Ejecutar pruebas de respaldo y restauración. |
-| Fallo de X-SIS | Errores en consultas académicas | Aislar la integración y manejar tiempos de espera. |
-| Migraciones incompatibles | Errores de aplicación o integridad | Utilizar migraciones versionadas. |
-| Autenticación implementada de forma insegura | Accesos indebidos | Validar credenciales, sesiones y permisos. |
-| Dependencias sin versiones controladas | Problemas de reproducibilidad | Documentar y fijar versiones compatibles. |
+| Recursos insuficientes | Lentitud o interrupciones. | Ejecutar pruebas con carga sintética y ajustar recursos. |
+| PostgreSQL expuesto públicamente | Acceso no autorizado. | Restringir conexiones y privilegios. |
+| Secretos incluidos en el repositorio | Compromiso de credenciales. | Utilizar configuración externa. |
+| Almacenamiento no persistente | Pérdida de datos después de reinicios. | Configurar y comprobar persistencia. |
+| Ausencia de respaldos verificados | Imposibilidad de restaurar información. | Ejecutar pruebas de respaldo y restauración. |
+| Fallos del SIS simulado | Interrupción de consultas académicas. | Aislar integración y controlar tiempos de espera. |
+| Migraciones incompatibles | Fallos de aplicación o pérdida de integridad. | Mantener migraciones versionadas. |
+| Autenticación insegura | Accesos indebidos. | Verificar credenciales, sesiones y autorización. |
+| Dependencias sin versiones definidas | Problemas de reproducibilidad. | Documentar y fijar versiones compatibles. |
 
-La integración real con sistemas institucionales permanece fuera del alcance del prototipo.
+La integración real con los sistemas de Horizon University permanece fuera del alcance del prototipo.
 
-Tampoco se contempla inicialmente una infraestructura distribuida con múltiples réplicas, balanceadores de carga, colas de mensajes o un Background Worker independiente.
+Tampoco se contempla inicialmente una infraestructura distribuida con múltiples réplicas, balanceadores de carga, colas de mensajes o workers independientes.
 
-Estas capacidades podrán reconsiderarse si nuevos requisitos o resultados de validación demuestran su necesidad.
+Estas capacidades podrán evaluarse posteriormente si los requisitos o las pruebas justifican su incorporación.
 
-Las medidas de mitigación descritas son propuestas y no deberán considerarse implementadas sin evidencia.
+Las mitigaciones presentadas son propuestas y deberán comprobarse antes de considerarlas implementadas.
 
 ## 6. Validación y trazabilidad
 
-La configuración propuesta deberá permitir ejecutar pruebas funcionales y arquitectónicas reproducibles.
+El entorno deberá permitir ejecutar pruebas funcionales y arquitectónicas reproducibles.
 
-Las principales verificaciones serán:
+Las principales verificaciones previstas son:
 
-| Escenario | Verificación prevista |
+| Escenario | Verificación |
 |---|---|
-| QS-01 — Seguridad | Acceso permitido y denegado según roles y recursos. |
-| QS-02 — Integridad | Transiciones válidas, reasignaciones atómicas y control de concurrencia. |
-| QS-03 — Auditabilidad | Persistencia de eventos relevantes junto con sus operaciones. |
-| QS-04 — Rendimiento | Consultas operacionales bajo carga sintética definida. |
-| QS-05 — Mantenibilidad | Revisión de límites modulares y pruebas de regresión. |
+| QS-01 — Seguridad | Autorización según roles, recursos y relaciones vigentes. |
+| QS-02 — Integridad | Transiciones válidas, asignaciones atómicas y concurrencia. |
+| QS-03 — Auditabilidad | Persistencia de eventos obligatorios con los cambios correspondientes. |
+| QS-04 — Rendimiento | Consultas operacionales con carga sintética. |
+| QS-05 — Mantenibilidad | Revisión de los límites modulares y pruebas de regresión. |
 | QS-06 — Usabilidad | Ejecución de flujos representativos por stakeholder. |
-| QS-07 — Recuperación | Persistencia tras reinicio y restauración de respaldo. |
+| QS-07 — Recuperación | Conservación de datos tras reinicio y restauración de respaldo. |
 
-Para QS-04 se contempla un escenario con aproximadamente 12.000 casos sintéticos y 20 usuarios concurrentes durante cinco minutos, de acuerdo con el escenario de calidad definido. La meta de tiempo de respuesta deberá medirse, no suponerse satisfecha por la infraestructura propuesta.
+Para QS-04 se contempla un escenario aproximado de **12.000 casos sintéticos y 20 usuarios concurrentes durante cinco minutos**, conforme al escenario de calidad definido.
 
-Cada prueba ejecutada deberá registrar su configuración, procedimiento, resultado esperado, resultado observado y evidencia correspondiente.
+El tiempo de respuesta deberá medirse bajo las condiciones documentadas. La selección de hardware no demuestra por sí sola el cumplimiento del objetivo.
 
-Los resultados se documentarán en `validation/`, diferenciando pruebas aprobadas, fallidas y pendientes de ejecución.
+Cada prueba ejecutada deberá registrar su configuración, procedimiento, resultado esperado, resultado observado y evidencias.
+
+Los resultados deberán diferenciar pruebas aprobadas, fallidas y pendientes.
 
 ### 6.1. Relación con decisiones arquitectónicas
 
 | Referencia | Relación |
 |---|---|
 | ADR-001 | Monolito modular y despliegue simplificado. |
-| ADR-002 | PostgreSQL como almacenamiento persistente. |
-| ADR-003 | Reglas de negocio y transacciones consistentes. |
+| ADR-002 | PostgreSQL como base de datos relacional persistente. |
+| ADR-003 | Consistencia del ciclo de vida y transacciones. |
 | ADR-004 | Autenticación interna y autorización por recursos. |
-| ADR-005 | Auditoría persistente. |
+| ADR-005 | Auditoría persistente y eventos de negocio. |
 | AD-07 | Viabilidad y recuperación del entorno. |
-| V-DEP | Ubicación de contenedores y comunicaciones. |
+| V-DEP | Distribución de contenedores y comunicaciones. |
 
 ### 6.2. Documentos relacionados
 
-- [Vista de Despliegue](views/deployment-view.md).
-- [Vista de Contenedores](views/container-view.md).
-- [Vista de Componentes](views/component-view.md).
-- [Decisiones Arquitectónicas](adr/README.md).
-- [Escenarios de Calidad](quality-scenarios.md).
-- [Diseño de Seguridad](design/security.md).
-- [Diseño de Interfaces](design/interfaces.md).
-- [Plan de Pruebas](validation/test-plan.md).
-- [Hallazgos de Validación](validation/findings.md).
+- [Deployment View](views/deployment-view.md)
+- [Container View](views/container-view.md)
+- [Component View](views/component-view.md)
+- [Architecture Decision Records](adr/README.md)
+- [Quality Scenarios](quality-scenarios.md)
+- [Security Design](design/security.md)
+- [API Contracts](design/interfaces.md)
+- [Domain and Data Model](design/domain-and-data.md)
+- [Validation Plan](validation/test-plan.md)
+- [Validation Findings](validation/findings.md)
 
 ## 7. Conclusión
 
 El despliegue propuesto para DH-01 prioriza la simplicidad, la reproducibilidad y la viabilidad técnica.
 
-La solución podrá ejecutarse en un único equipo físico mediante procesos separados para la aplicación web, el backend, PostgreSQL y el simulador del SIS.
+La aplicación web React, el backend Node.js + Express, PostgreSQL y el simulador del SIS podrán ejecutarse en un mismo equipo físico mediante procesos separados.
 
-La arquitectura mantendrá autenticación interna, autorización en el backend, persistencia relacional y auditoría de operaciones relevantes.
+Esta configuración mantendrá la arquitectura de monolito modular, la autenticación interna, la autorización en el backend, la persistencia relacional y la auditoría de las operaciones relevantes.
 
-Las decisiones de infraestructura estarán sujetas a las capacidades reales del entorno y a los resultados de las pruebas.
+La capacidad real de infraestructura deberá evaluarse mediante las pruebas previstas, especialmente en rendimiento, seguridad y recuperación.
 
-El cumplimiento de los atributos de calidad deberá demostrarse mediante evidencia documentada, no únicamente mediante la selección de tecnologías.
-
-Este documento complementa la Vista de Despliegue y proporciona los supuestos necesarios para preparar y validar el prototipo de DH-01.
+Este documento complementa la Vista de Despliegue y establece los supuestos necesarios para preparar y validar el prototipo de DH-01, sin presentar la infraestructura propuesta como una implementación ya verificada.
