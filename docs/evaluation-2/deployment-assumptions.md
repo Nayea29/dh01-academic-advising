@@ -1,19 +1,24 @@
 # DH-01 — Supuestos y Restricciones de Despliegue
- 
+
 **Vista relacionada:** V-DEP — Deployment View  
 **Decisiones relacionadas:** ADR-001, ADR-002, ADR-003, ADR-004 y ADR-005  
 **Architecture Driver principal:** AD-07 — Viabilidad de despliegue  
 **Escenario de calidad principal:** QS-07 — Persistencia y recuperación  
+**Estado:** Supuestos de despliegue documentados; prototipo HTML interactivo disponible; infraestructura integrada pendiente de implementación
 
 ## 1. Propósito y alcance
 
 Este documento establece los supuestos técnicos, los recursos estimados y las restricciones necesarias para desplegar y validar el Academic Advising Case Management System (DH-01).
 
-La solución utilizará una arquitectura de monolito modular compuesta por una aplicación web React, un backend Node.js + Express y una base de datos PostgreSQL. También se contempla un servicio mock del Student Information System (SIS) que proporcionará información académica sintética.
+La arquitectura propuesta utiliza un monolito modular compuesto por una aplicación web React, un backend Node.js + Express y una base de datos PostgreSQL. También contempla un servicio mock del Student Information System (SIS) que proporcionará información académica sintética.
 
-El despliegue estará orientado a desarrollo, pruebas y demostración. Su finalidad será permitir la ejecución de los principales procesos de asesoría académica y la validación de atributos de calidad relacionados con seguridad, integridad, auditabilidad, rendimiento y recuperación.
+El despliegue técnico estará orientado a desarrollo, pruebas y demostración. Su finalidad será permitir la ejecución de los principales procesos de asesoría académica y la validación de atributos de calidad relacionados con seguridad, integridad, auditabilidad, rendimiento y recuperación.
 
-El prototipo utilizará identidades ficticias y no requerirá acceso a los sistemas institucionales reales de Horizon University.
+La Evaluación 2 incluye un [prototipo HTML interactivo](../../prototype/index.html), ejecutable directamente en el navegador, que utiliza datos sintéticos y almacenamiento local mediante `localStorage`.
+
+**El prototipo existente no requiere el despliegue de los contenedores C-WEB, C-API, C-DB ni X-SIS.** Las condiciones de infraestructura descritas en este documento corresponden a una futura implementación integrada de la arquitectura y no a requisitos de ejecución del HTML actual.
+
+La implementación futura utilizará identidades ficticias y no requerirá acceso a los sistemas institucionales reales de Horizon University.
 
 Se establecen los siguientes supuestos:
 
@@ -26,13 +31,15 @@ Se establecen los siguientes supuestos:
 | AS-DEP-05 | PostgreSQL será el sistema principal de persistencia. |
 | AS-DEP-06 | Los módulos de negocio se ejecutarán dentro de una única aplicación backend. |
 | AS-DEP-07 | La integración con el SIS se representará mediante un servicio mock independiente. |
-| AS-DEP-08 | Los nodos lógicos podrán compartir un mismo equipo físico durante el prototipo. |
+| AS-DEP-08 | Los nodos lógicos podrán compartir un mismo equipo físico durante una futura implementación de prueba. |
 
 Estos supuestos no implican que se disponga de servidores institucionales, credenciales reales, infraestructura dedicada o integraciones oficiales.
 
+El prototipo HTML es un artefacto de demostración separado. Su funcionamiento local no confirma ni invalida la viabilidad de los supuestos de despliegue del sistema integrado.
+
 ## 2. Infraestructura y tecnologías propuestas
 
-La configuración de referencia contempla los siguientes elementos:
+La configuración de referencia para una futura implementación contempla los siguientes elementos:
 
 | Identificador | Componente | Tecnología | Nodo lógico |
 |---|---|---|---|
@@ -45,9 +52,11 @@ La configuración de referencia contempla los siguientes elementos:
 
 Para simplificar el despliegue, se propone ejecutar los servicios en un único equipo de prueba, manteniendo procesos separados y conexiones restringidas a PostgreSQL.
 
+**Esta configuración todavía no se encuentra implementada.** El prototipo HTML puede utilizarse en un navegador sin instalar PostgreSQL, Node.js ni Docker.
+
 ### 2.1. Recursos estimados
 
-Como punto de partida para el prototipo se propone:
+Como punto de partida para implementar el sistema integrado en un entorno de prueba, se propone:
 
 | Recurso | Estimación inicial |
 |---|---|
@@ -63,9 +72,11 @@ Estas cifras son estimaciones para planificación, no requisitos mínimos compro
 
 La suficiencia de estos recursos deberá evaluarse durante la implementación y las pruebas de rendimiento.
 
+Las estimaciones no se refieren al consumo de recursos del prototipo HTML existente, que se ejecuta localmente en el navegador.
+
 ### 2.2. Estrategia de ejecución
 
-Se recomienda utilizar **Docker Compose** cuando el entorno disponible lo permita, para facilitar la configuración y reproducción de los servicios.
+Se recomienda utilizar **Docker Compose** cuando el entorno disponible lo permita, para facilitar la configuración y reproducción de los servicios de la arquitectura propuesta.
 
 Como alternativa, React, Node.js, PostgreSQL y el simulador podrán ejecutarse mediante instalaciones y procesos independientes.
 
@@ -81,9 +92,11 @@ En cualquiera de las dos opciones deberán documentarse:
 
 El uso de Docker Compose no modifica la arquitectura de monolito modular seleccionada en ADR-001. Los componentes internos de `C-API` continuarán ejecutándose como una única aplicación backend.
 
+La ejecución del prototipo HTML actual es independiente de esta estrategia: basta con abrir `prototype/index.html` en un navegador compatible con JavaScript.
+
 ## 3. Configuración, conectividad y seguridad
 
-Los parámetros del entorno se mantendrán separados del código fuente mediante mecanismos apropiados de configuración.
+Los parámetros de la futura implementación se mantendrán separados del código fuente mediante mecanismos apropiados de configuración.
 
 Las variables previstas son:
 
@@ -100,6 +113,8 @@ Las variables previstas son:
 Los nombres son referenciales y podrán ajustarse durante la implementación.
 
 Conforme a ADR-004, la autenticación utilizará sesiones opacas de servidor, persistidas mediante la tabla técnica `SESSION` en PostgreSQL. El identificador reutilizable de sesión no deberá almacenarse directamente en texto claro.
+
+Estas variables y controles de sesión corresponden a la implementación propuesta. El prototipo HTML no utiliza sesiones persistidas en PostgreSQL ni autenticación real de servidor.
 
 ### 3.1. Comunicaciones
 
@@ -119,9 +134,11 @@ El simulador SIS funcionará como servicio independiente del proceso `C-API`, au
 
 Las conexiones internas que atraviesen redes no confiables deberán contar con protección de transporte apropiada.
 
+**Estas comunicaciones representan la arquitectura objetivo.** El prototipo HTML interactivo no implementa solicitudes REST al backend ni conexiones PostgreSQL.
+
 ### 3.2. Controles de seguridad
 
-El despliegue deberá contemplar:
+El despliegue futuro deberá contemplar:
 
 - Autenticación interna mediante usuarios ficticios.
 - Contraseñas almacenadas utilizando un algoritmo de hash seguro, como Argon2id.
@@ -134,9 +151,11 @@ El despliegue deberá contemplar:
 - Separación entre permisos técnicos y acceso a información académica.
 - Registros técnicos sin contraseñas, tokens ni contenido confidencial innecesario.
 
-La utilización de datos sintéticos no elimina la obligación de aplicar controles de seguridad.
+La utilización de datos sintéticos no elimina la obligación de aplicar controles de seguridad a una futura implementación.
 
 Los mecanismos de identidad, autorización, sesiones y privacidad se detallan en [Security Design](design/security.md).
+
+El selector de perfiles, los controles visuales y los conflictos simulados del prototipo HTML no sustituyen estos mecanismos.
 
 ## 4. Persistencia, respaldos y recuperación
 
@@ -145,6 +164,8 @@ PostgreSQL conservará la información relacionada con usuarios, sesiones, casos
 La información confirmada deberá permanecer disponible después de reiniciar `C-API`.
 
 Cuando se utilice Docker Compose, PostgreSQL deberá contar con un volumen persistente correctamente configurado. Si la base de datos se ejecuta directamente en el sistema operativo, su directorio de datos deberá disponer de almacenamiento persistente.
+
+El prototipo existente utiliza `localStorage` para conservar información local en el navegador. Este mecanismo no equivale a la persistencia transaccional de PostgreSQL ni proporciona los procedimientos de respaldo y restauración propuestos.
 
 ### 4.1. Integridad
 
@@ -155,6 +176,8 @@ Por ejemplo, una reasignación deberá confirmar conjuntamente la finalización 
 La consistencia del ciclo de vida seguirá ADR-003, mientras que la conservación de eventos de negocio se regirá por ADR-005.
 
 Las restricciones de integridad y el control de concurrencia se desarrollan en [Domain and Data Model](design/domain-and-data.md).
+
+Las operaciones simuladas en el prototipo no permiten verificar la atomicidad ni el rollback de las operaciones sobre una base de datos relacional.
 
 ### 4.2. Respaldos
 
@@ -186,9 +209,11 @@ La validación de recuperación contemplará el siguiente procedimiento:
 
 Adicionalmente, deberá comprobarse que un reinicio controlado de `C-API` no elimine información previamente confirmada.
 
-El prototipo no presupone alta disponibilidad, replicación de base de datos ni recuperación automática ante cualquier fallo físico.
+La arquitectura propuesta no presupone alta disponibilidad, replicación de base de datos ni recuperación automática ante cualquier fallo físico.
 
 Las pruebas de persistencia y restauración servirán como evidencia del escenario QS-07.
+
+El funcionamiento de `localStorage` en el prototipo HTML no demuestra recuperación de C-API ni restauración de PostgreSQL.
 
 ## 5. Riesgos y restricciones operacionales
 
@@ -205,8 +230,9 @@ Los riesgos principales del despliegue propuesto son:
 | Migraciones incompatibles | Fallos de aplicación o pérdida de integridad. | Mantener migraciones versionadas. |
 | Autenticación insegura | Accesos indebidos. | Verificar credenciales, sesiones y autorización. |
 | Dependencias sin versiones definidas | Problemas de reproducibilidad. | Documentar y fijar versiones compatibles. |
+| Confusión entre prototipo y arquitectura desplegada | Presentación de simulaciones locales como mecanismos técnicos implementados. | Identificar el alcance de `prototype/index.html` y mantener explícitas sus limitaciones. |
 
-La integración real con los sistemas de Horizon University permanece fuera del alcance del prototipo.
+La integración real con los sistemas de Horizon University permanece fuera del alcance de la propuesta inicial.
 
 Tampoco se contempla inicialmente una infraestructura distribuida con múltiples réplicas, balanceadores de carga, colas de mensajes o workers independientes.
 
@@ -216,7 +242,7 @@ Las mitigaciones presentadas son propuestas y deberán comprobarse antes de cons
 
 ## 6. Validación y trazabilidad
 
-El entorno deberá permitir ejecutar pruebas funcionales y arquitectónicas reproducibles.
+El entorno futuro deberá permitir ejecutar pruebas funcionales y arquitectónicas reproducibles.
 
 Las principales verificaciones previstas son:
 
@@ -230,13 +256,15 @@ Las principales verificaciones previstas son:
 | QS-06 — Usabilidad | Ejecución de flujos representativos por stakeholder. |
 | QS-07 — Recuperación | Conservación de datos tras reinicio y restauración de respaldo. |
 
-Para QS-04 se contempla un escenario aproximado de **12.000 casos sintéticos y 20 usuarios concurrentes durante cinco minutos**, conforme al escenario de calidad definido.
+Para QS-04 se contempla un escenario de **12.000 casos sintéticos y 20 solicitudes concurrentes durante cinco minutos**, conforme al escenario de calidad definido.
 
 El tiempo de respuesta deberá medirse bajo las condiciones documentadas. La selección de hardware no demuestra por sí sola el cumplimiento del objetivo.
 
 Cada prueba ejecutada deberá registrar su configuración, procedimiento, resultado esperado, resultado observado y evidencias.
 
 Los resultados deberán diferenciar pruebas aprobadas, fallidas y pendientes.
+
+**Estado actual:** las 18 pruebas técnicas definidas en el plan permanecen en `NOT EXECUTED`. La disponibilidad del prototipo interactivo no modifica ese estado.
 
 ### 6.1. Relación con decisiones arquitectónicas
 
@@ -262,6 +290,8 @@ Los resultados deberán diferenciar pruebas aprobadas, fallidas y pendientes.
 - [Domain and Data Model](design/domain-and-data.md)
 - [Validation Plan](validation/test-plan.md)
 - [Validation Findings](validation/findings.md)
+- [Project Status](project-status.md)
+- [Prototipo interactivo y limitaciones](../../prototype/README.md)
 
 ## 7. Conclusión
 
@@ -273,4 +303,6 @@ Esta configuración mantendrá la arquitectura de monolito modular, la autentica
 
 La capacidad real de infraestructura deberá evaluarse mediante las pruebas previstas, especialmente en rendimiento, seguridad y recuperación.
 
-Este documento complementa la Vista de Despliegue y establece los supuestos necesarios para preparar y validar el prototipo de DH-01, sin presentar la infraestructura propuesta como una implementación ya verificada.
+La Evaluación 2 incluye un **prototipo HTML interactivo**, cuya ejecución no requiere la infraestructura documentada en este archivo.
+
+**Este documento complementa la Vista de Despliegue y establece los supuestos necesarios para una implementación y validación futura de DH-01, sin presentar la infraestructura propuesta como una solución ya desplegada o verificada.**

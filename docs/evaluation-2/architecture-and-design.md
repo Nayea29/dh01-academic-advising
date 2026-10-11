@@ -1,9 +1,9 @@
 # DH-01 — Academic Advising Case Management System
 
-## Architecture and Design Document
+**Architecture and Design Document**
 
-**Institución:** Horizon University — Digital Horizon Initiative  
-
+**Fecha:** 11 de octubre de 2026  
+**Estado:** Arquitectura documentada y prototipo HTML interactivo disponible; implementación integrada y pruebas técnicas pendientes
 
 ## Índice del documento
 
@@ -18,7 +18,7 @@
 9. [Validación, riesgos y plan de trabajo](#9-validación-riesgos-y-plan-de-trabajo)
 10. [Trazabilidad, glosario y referencias](#10-trazabilidad-glosario-y-referencias)
 
-# 1. Propósito y alcance del diseño
+## 1. Propósito y alcance del diseño
 
 ### 1.1 Introducción
 
@@ -31,6 +31,8 @@ A partir del análisis del Request for Proposal (RFP), el estudio del proceso ac
 El presente documento desarrolla la propuesta de arquitectura y diseño del sistema, transformando las necesidades y requisitos identificados en una solución técnicamente estructurada, coherente y viable.
 
 Se busca explicar cómo se organizará el sistema, cuáles serán las responsabilidades de sus componentes, cómo interactuarán entre sí, de qué manera se administrará la información y qué mecanismos permitirán satisfacer los requisitos funcionales y de calidad establecidos.
+
+La entrega también incorpora un [prototipo HTML interactivo](../../prototype/index.html) que representa los principales flujos de usuario mediante datos sintéticos y lógica local. Este prototipo permite ilustrar el comportamiento esperado, pero no implementa los contenedores, servicios ni mecanismos de persistencia de la arquitectura propuesta.
 
 ### 1.2 Propósito del documento
 
@@ -104,18 +106,17 @@ Estas exclusiones permiten concentrar el diseño en las necesidades centrales de
 
 El trabajo arquitectónico se concentra en definir una solución que responda a los requisitos del proyecto y permita evaluar su viabilidad técnica antes de avanzar hacia una implementación completa.
 
-Para ello, se desarrollarán vistas arquitectónicas, modelos de datos, contratos de interfaces, escenarios de calidad, registros de decisiones y una estrategia inicial de validación.
+Para ello, se han preparado vistas arquitectónicas, modelos de datos, contratos de interfaces, escenarios de calidad, registros de decisiones y una estrategia inicial de validación.
 
-Cuando resulte pertinente, podrán utilizarse prototipos o pruebas de concepto para comprobar decisiones arquitectónicas específicas.
+Como complemento, se incluye un prototipo HTML interactivo que permite explorar las interfaces y los procesos propuestos sin necesidad de desplegar servicios backend.
 
-Las funcionalidades implementadas y los resultados de pruebas ejecutadas se documentarán de manera independiente de las capacidades que permanezcan en fase de diseño.
+El prototipo utiliza almacenamiento `localStorage`, un selector de perfiles y reglas simuladas. Su objetivo es apoyar la explicación del diseño, no verificar técnicamente la autorización, las transacciones, la concurrencia ni la recuperación.
+
+Las funcionalidades de la arquitectura que se implementen posteriormente y los resultados de pruebas ejecutadas se documentarán de manera independiente de las capacidades que permanezcan en fase de diseño.
 
 El objetivo es establecer una base técnica consistente que facilite la implementación, reduzca incertidumbres, permita evaluar decisiones de diseño y mantenga una relación clara entre requisitos, arquitectura y validación.
 
-
-
-
-# 2. Requisitos significativos y restricciones
+## 2. Requisitos significativos y restricciones
 
 ### 2.1 Restricciones y condiciones del proyecto
 
@@ -172,9 +173,9 @@ El análisis detallado de los requisitos y su relación con los architecture dri
 
 Los atributos de calidad del Academic Advising Case Management System se han definido mediante escenarios que especifican situaciones concretas, respuestas esperadas y criterios observables de validación.
 
-El análisis considera principalmente la confidencialidad, la integridad del ciclo de vida de los casos, la trazabilidad histórica, el rendimiento de las consultas operacionales, la mantenibilidad, la usabilidad y la recuperación del servicio.
+El análisis considera principalmente la confidencialidad, la integridad del ciclo de vida de los casos, la trazabilidad histórica, el rendimiento de las consultas operativas, la mantenibilidad, la usabilidad y la recuperación del servicio.
 
-Entre los escenarios de mayor prioridad se encuentran la prevención del acceso no autorizado a notas internas, La imposibilidad de resolver casos mientras existan actividades de seguimiento pendientes o solicitudes de información abiertas y la conservación del historial durante las reasignaciones.
+Entre los escenarios de mayor prioridad se encuentran la prevención del acceso no autorizado a notas internas, la imposibilidad de resolver casos mientras existan actividades de seguimiento pendientes o solicitudes de información abiertas y la conservación del historial durante las reasignaciones.
 
 Estos escenarios tienen consecuencias directas sobre la arquitectura. La confidencialidad requiere controles de autorización en el backend; la integridad del ciclo de vida necesita validaciones de negocio y operaciones consistentes; y la trazabilidad exige registrar los cambios relevantes junto con las operaciones que los producen.
 
@@ -187,7 +188,7 @@ Asimismo, las necesidades de mantenibilidad y viabilidad operacional influyen en
 | QS-01 — Confidentiality | Impedir el acceso no autorizado a información interna. |
 | QS-02 — Lifecycle Integrity | Evitar resoluciones y estados inconsistentes. |
 | QS-03 — Traceability | Conservar el historial de acciones y reasignaciones. |
-| QS-04 — Performance | Proporcionar consultas operacionales eficientes. |
+| QS-04 — Performance | Proporcionar consultas operativas eficientes. |
 | QS-05 — Maintainability | Facilitar la modificación de políticas y reglas. |
 | QS-06 — Usability | Permitir comprender el estado y las acciones de cada caso. |
 | QS-07 — Availability | Recuperar el servicio después de interrupciones controladas. |
@@ -196,7 +197,11 @@ Asimismo, las necesidades de mantenibilidad y viabilidad operacional influyen en
 
 Los escenarios se vinculan con los architecture drivers AD-01 a AD-07 y servirán para justificar las decisiones arquitectónicas, definir responsabilidades entre componentes y establecer las actividades de validación.
 
-Las métricas cuantitativas constituyen objetivos propuestos para un entorno de prueba determinado y no representan resultados de pruebas ejecutadas ni compromisos institucionales definitivos.
+El prototipo interactivo permite ilustrar determinados comportamientos asociados con QS-01, QS-02, QS-03 y QS-06, como la representación de permisos, transiciones, historial y acciones visibles.
+
+No obstante, el prototipo no implementa los mecanismos de seguridad y consistencia del backend ni acredita los objetivos cuantitativos de rendimiento, usabilidad o recuperación.
+
+Las métricas constituyen objetivos propuestos para un entorno de prueba determinado y no representan resultados de pruebas ejecutadas ni compromisos institucionales definitivos.
 
 Los escenarios completos, sus medidas de respuesta y procedimientos de verificación están documentados en [Quality Attribute Scenarios](quality-scenarios.md).
 
@@ -217,6 +222,8 @@ Se compararon tres alternativas considerando mantenibilidad, consistencia de dat
 Se selecciona como propuesta un **monolito modular**, con una aplicación web React (C-WEB), un backend Node.js/Express (C-API), PostgreSQL (C-DB) y un servicio HTTP mock independiente para el SIS (X-SIS).
 
 Esta alternativa responde al alcance de DH-01 porque permite separar responsabilidades funcionales y mantener operaciones transaccionales dentro de un backend único. Al mismo tiempo, reduce la complejidad de infraestructura frente a una solución distribuida.
+
+La arquitectura seleccionada corresponde al diseño técnico objetivo. El prototipo HTML disponible es un artefacto separado, utilizado para ilustrar los procesos de usuario, sin implementar ni sustituir los contenedores propuestos.
 
 ### 4.3. Decisiones arquitectónicas
 
@@ -247,6 +254,8 @@ La vista de contexto diferencia las responsabilidades de DH-01 de los sistemas a
 
 La vista de despliegue presenta cómo podrían ejecutarse estas responsabilidades en recursos limitados, sin asumir infraestructura institucional ya disponible.
 
+Los diagramas representan la arquitectura propuesta y no deben interpretarse como evidencia de que los componentes se encuentran desplegados.
+
 Los diagramas y las descripciones completas se encuentran en el [Índice de Vistas](views/README.md).
 
 ## 6. Dominio, datos y comportamiento
@@ -255,11 +264,23 @@ El diseño utiliza `AdvisingCase` como entidad central, relacionada con estudian
 
 PostgreSQL permitirá representar estas relaciones mediante restricciones e índices. Se propone mantener una única asignación vigente y conservar las asignaciones anteriores para reconstruir la historia del caso.
 
-El ciclo de vida se organiza en siete estados, con transiciones controladas desde C-API. Para resolver un caso se requiere orientación registrada, ausencia de solicitudes de información abiertas y de seguimientos pendientes, además de un responsable autorizado y una versión vigente.
+El ciclo de vida se organiza en siete estados, con transiciones controladas desde C-API:
+
+1. `NEW`
+2. `UNDER_TRIAGE`
+3. `ASSIGNED`
+4. `IN_PROGRESS`
+5. `WAITING_FOR_INFORMATION`
+6. `FOLLOW_UP`
+7. `RESOLVED`
+
+Para resolver un caso se requiere orientación registrada, ausencia de solicitudes de información abiertas y de seguimientos pendientes, además de un responsable autorizado y una versión vigente.
 
 Las operaciones críticas utilizarán transacciones, bloqueo del caso y validación de concurrencia. Los eventos obligatorios de auditoría formarán parte de la misma transacción que los cambios correspondientes.
 
 El modelo también contempla una tabla técnica `SESSION` para persistir sesiones de autenticación, separada de las entidades del proceso académico.
+
+El prototipo interactivo representa estados y acciones mediante un modelo local. Las entidades, restricciones e invariantes de PostgreSQL descritos en este documento todavía requieren implementación y validación técnica.
 
 **Documentos de detalle:** [Modelo de dominio y datos](design/domain-and-data.md) y [Ciclo de vida e interacciones](design/lifecycle-and-runtime.md).
 
@@ -273,6 +294,8 @@ La autorización será contextual: además del rol, considerará la relación vi
 
 Los contratos también contemplan errores de autenticación, autorización, recursos inexistentes, conflictos de versión y fallos de la integración simulada.
 
+**Diferencia frente al prototipo:** el selector de perfiles, las restricciones de visualización y los conflictos incluidos en el HTML son simulaciones ejecutadas en el navegador. No sustituyen las sesiones, los controles de autorización del servidor ni la validación de contratos HTTP documentados.
+
 **Documentos de detalle:** [Interfaces](design/interfaces.md) y [Seguridad](design/security.md).
 
 ## 8. Supuestos de despliegue
@@ -283,19 +306,47 @@ Docker Compose se considera una opción para preparar entornos reproducibles. Ta
 
 La capacidad efectiva de infraestructura y los mecanismos de recuperación deberán verificarse mediante pruebas. No se presume disponibilidad de servicios institucionales reales ni se promete alta disponibilidad.
 
+El prototipo HTML incluido no requiere desplegar estos contenedores para su demostración. Puede abrirse directamente en un navegador compatible con JavaScript.
+
 **Documento de detalle:** [Supuestos de despliegue](deployment-assumptions.md).
 
 ## 9. Validación, riesgos y plan de trabajo
 
 La estrategia de validación contempla pruebas funcionales, de seguridad, integración, API, transacciones y atributos de calidad.
 
-Se han definido **18 pruebas**, con prioridad para los controles de confidencialidad, integridad del ciclo de vida, concurrencia y auditoría. Las demás verifican asignación, persistencia, integración SIS, rendimiento, modificabilidad, usabilidad y recuperación.
+Se han definido **18 pruebas técnicas**, con prioridad para los controles de confidencialidad, integridad del ciclo de vida, concurrencia y auditoría. Las demás verifican asignación, persistencia, integración SIS, rendimiento, modificabilidad, usabilidad y recuperación.
 
 Los principales riesgos identificados incluyen políticas institucionales sin confirmar, exposición de información interna, inconsistencias transaccionales, dificultades de despliegue y limitaciones de tiempo.
 
 El trabajo posterior está organizado en un backlog de trece actividades y cinco incrementos propuestos, desde la base técnica hasta la evaluación de calidad.
 
-**Estado de validación:** según la línea base documental revisada, el prototipo no dispone de implementación ejecutable identificada y no se han aportado resultados de pruebas reproducibles. Ningún atributo de calidad se declara demostrado.
+### 9.1. Estado del prototipo
+
+Se incluye un prototipo HTML interactivo que representa el comportamiento de DH-01 mediante datos sintéticos.
+
+**Ubicación:** [`prototype/index.html`](../../prototype/index.html)
+
+**Descripción y limitaciones:** [README del prototipo](../../prototype/README.md)
+
+El prototipo permite recorrer los flujos principales desde las perspectivas de los cinco perfiles definidos, incluyendo estudiantes, asesores, coordinadores y servicios de TI.
+
+También representa operaciones de creación, clasificación, asignación, seguimiento, recomendaciones, notas internas, resolución e historial.
+
+Las acciones se ejecutan localmente, con persistencia en `localStorage`. Los controles de acceso y los conflictos de versión que presenta son simulaciones para fines académicos.
+
+**No constituye una implementación de C-API, C-DB o X-SIS ni demuestra el cumplimiento de los mecanismos de seguridad, auditoría, concurrencia o recuperación diseñados.**
+
+### 9.2. Estado de validación técnica
+
+El [Plan de Validación](validation/test-plan.md) define 18 pruebas previstas para verificar el comportamiento de la arquitectura.
+
+**Estado actual: 18 pruebas `NOT EXECUTED`.**
+
+No se cuenta con resultados de ejecución técnica ni evidencia reproducible que permita declarar aprobado alguno de los escenarios QS-01 a QS-07.
+
+La disponibilidad del prototipo facilita presentar los flujos y podría apoyar una futura evaluación de usabilidad, pero no convierte automáticamente las demostraciones en pruebas técnicas aprobadas.
+
+Las observaciones, limitaciones y condiciones para registrar futuros resultados se encuentran en [Validation Findings](validation/findings.md).
 
 **Documentos de detalle:** [Plan de validación](validation/test-plan.md), [Resultados y hallazgos](validation/findings.md) y [Estado del proyecto](project-status.md).
 
@@ -307,7 +358,7 @@ La [Matriz de Trazabilidad](traceability.md) relaciona requisitos funcionales, a
 
 Esta relación permite justificar las decisiones arquitectónicas y comprobar que cada necesidad tenga una respuesta de diseño y una forma propuesta de verificación.
 
-La cobertura actual es documental; no equivale a una implementación ni a pruebas aprobadas.
+La cobertura actual es documental; no equivale a una implementación integrada ni a pruebas técnicas aprobadas.
 
 ### 10.2. Glosario
 
@@ -321,12 +372,17 @@ La cobertura actual es documental; no equivale a una implementación ni a prueba
 | AD | Factor arquitectónico derivado de una necesidad significativa. |
 | ADR | Registro que documenta y justifica una decisión arquitectónica. |
 | QS | Escenario de calidad con respuesta y criterios observables. |
-| Evidencia | Registro reproducible de una ejecución, asociado a una versión y un entorno. |
+| Prototipo interactivo | Artefacto HTML que simula interfaces y flujos mediante lógica local y datos sintéticos. |
+| Evidencia técnica | Registro reproducible de una ejecución, asociado a una versión y un entorno. |
 
 ### 10.3. Conclusión
 
 La arquitectura propuesta para DH-01 busca responder a las necesidades de gestión de asesoría académica mediante un monolito modular, persistencia relacional, control de acceso contextual y operaciones auditables.
 
-El diseño mantiene una relación trazable entre requisitos, decisiones, componentes y validación prevista. Las políticas institucionales abiertas, la implementación y la comprobación empírica permanecen pendientes.
+El diseño mantiene una relación trazable entre requisitos, decisiones, componentes y validación prevista.
 
-Esta documentación proporciona una base estructurada para desarrollar, evaluar y evolucionar el sistema sin presentar sus propuestas como funcionalidades ya implementadas.
+La entrega incorpora un prototipo interactivo que permite visualizar y recorrer los flujos principales sin implementar el sistema completo.
+
+Las políticas institucionales abiertas, la implementación integrada y la comprobación empírica de los atributos de calidad permanecen pendientes.
+
+Esta documentación proporciona una base estructurada para desarrollar, evaluar y evolucionar el sistema, **distinguiendo las capacidades ilustradas por el prototipo de las funcionalidades y mecanismos técnicos que todavía no se han implementado ni validado**.

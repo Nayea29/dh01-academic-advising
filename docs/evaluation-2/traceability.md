@@ -1,5 +1,6 @@
 # DH-01 — Matriz de Trazabilidad
 
+**Estado:** Trazabilidad arquitectónica documentada; prototipo interactivo disponible; implementación integrada y validación técnica pendientes
 
 ## 1. Propósito, convenciones y cobertura
 
@@ -8,6 +9,10 @@ Este documento relaciona los requisitos de DH-01 con los drivers arquitectónico
 Su propósito es justificar las decisiones de diseño, identificar las responsabilidades de cada elemento y establecer cómo podrá verificarse el cumplimiento de las necesidades del Academic Advising Case Management System.
 
 La matriz permite recorrer la arquitectura en ambas direcciones: desde un requisito hasta su diseño y validación, o desde una decisión y componente hasta las necesidades que justifican su existencia.
+
+La Evaluación 2 también incluye un [prototipo HTML interactivo](../../prototype/index.html) que permite explorar los principales flujos del sistema mediante datos sintéticos y lógica local.
+
+Este prototipo constituye un artefacto de demostración y no una implementación de los contenedores C-WEB, C-API, C-DB y X-SIS descritos en la arquitectura.
 
 Se utilizan los siguientes identificadores:
 
@@ -32,15 +37,18 @@ Las referencias a escenarios de calidad pueden complementar la trazabilidad func
 
 La cobertura establecida en esta matriz es principalmente documental.
 
-Se distinguen tres niveles:
+Se distinguen cuatro niveles:
 
-| Nivel | Criterio |
-|---|---|
-| Cobertura documental | Existen responsabilidades, comportamientos y procedimientos de validación relacionados con el requisito. |
-| Cobertura de implementación | Existe código identificable que materializa la capacidad. |
-| Cobertura de ejecución | Existe una prueba ejecutada con revisión, entorno, resultado observado y evidencia. |
+| Nivel | Criterio | Estado actual |
+|---|---|---|
+| Cobertura documental | Existen responsabilidades, comportamientos y procedimientos de validación relacionados con el requisito. | Documentada. |
+| Demostración interactiva | Existe un artefacto navegable que representa determinados flujos o comportamientos. | Prototipo HTML disponible. |
+| Cobertura de implementación | Existe código identificable que materializa la capacidad dentro de la arquitectura propuesta. | Pendiente de implementación integrada. |
+| Cobertura de ejecución | Existe una prueba ejecutada con revisión, entorno, resultado observado y evidencia. | 18 pruebas técnicas en `NOT EXECUTED`. |
 
-Según la línea base documental registrada, los requisitos cuentan con propuestas de diseño y procedimientos de validación, pero no con implementación o ejecución demostradas.
+Los requisitos cuentan con propuestas de diseño y procedimientos de validación.
+
+El prototipo permite explorar visualmente determinados flujos y restricciones mediante datos sintéticos y almacenamiento `localStorage`, pero no acredita su implementación dentro del backend, ni el funcionamiento de transacciones, autorización contextual o persistencia PostgreSQL.
 
 La documentación permite justificar decisiones y planificar verificaciones, sin demostrar automáticamente conformidad funcional, seguridad, rendimiento o aceptación institucional.
 
@@ -50,7 +58,7 @@ La documentación permite justificar decisiones y planificar verificaciones, sin
 
 La siguiente matriz relaciona los catorce requisitos funcionales con sus reglas, drivers, decisiones, componentes y pruebas previstas.
 
-Todas las filas representan cobertura documental. La implementación y los resultados de ejecución permanecen pendientes de verificación.
+Todas las filas representan cobertura documental. Aunque algunos flujos están ilustrados en el prototipo interactivo, la implementación de la arquitectura y los resultados de ejecución técnica permanecen pendientes de verificación.
 
 | FR | Regla relacionada | Driver | Decisión | Componentes | Diseño relacionado | Validación |
 |---|---|---|---|---|---|---|
@@ -107,7 +115,28 @@ Permitir seguimientos opcionales que no impidan la resolución requerirá revisa
 | PBR-08 | Reapertura como extensión posterior. | Fuera del flujo inicial. |
 | PBR-09 | Categorías y prioridades controladas. | Categorías propuestas; prioridades por validar. |
 
-Las reglas complementarias representan interpretaciones y decisiones de diseño del equipo. Su presencia en varios documentos no constituye aprobación institucional.
+Las reglas complementarias representan interpretaciones y decisiones de diseño del equipo. Su presencia en varios documentos o su representación en el prototipo no constituye aprobación institucional.
+
+### 2.4. Correspondencia con el prototipo interactivo
+
+El prototipo HTML constituye una referencia adicional para mostrar determinados flujos y comportamientos del sistema.
+
+| Capacidad ilustrada | Requisitos relacionados | Alcance de la demostración |
+|---|---|---|
+| Registro de solicitudes. | FR-01, FR-02 | Formularios y creación simulada de casos con datos sintéticos. |
+| Clasificación y asignación. | FR-03, FR-04 | Interacción con los flujos de triage y asignación. |
+| Historial de casos. | FR-05, FR-10 | Representación local de acciones y cambios. |
+| Gestión del adviser. | FR-06 | Interfaz y operaciones simuladas de atención. |
+| Información adicional y seguimiento. | FR-07, FR-08 | Flujos locales de solicitudes y actividades pendientes. |
+| Reasignación. | FR-09 | Cambio simulado del responsable y visualización del historial. |
+| Resolución. | FR-11 | Representación de condiciones y estados de cierre. |
+| Visibilidad del estudiante. | FR-12 | Vistas diferenciadas y restricciones de presentación. |
+| Supervisión operacional. | FR-13 | Consultas y visualizaciones de datos sintéticos. |
+| Roles y restricciones. | FR-14 | Selector de perfiles y comprobaciones locales simuladas. |
+
+Estas correspondencias son **referencias de demostración**, no una nueva clasificación de requisitos como técnicamente implementados o validados.
+
+En particular, el prototipo no demuestra sesiones seguras de servidor, protección CSRF, integridad referencial en PostgreSQL, auditoría transaccional ni concurrencia real.
 
 ## 3. Calidad, restricciones y supuestos
 
@@ -127,6 +156,8 @@ QS-02 comprueba la integridad del ciclo de vida asociada especialmente con FR-08
 No se introduce un requisito QR adicional para representar esa necesidad, porque no existe un identificador correspondiente en los requisitos originales.
 
 Los objetivos cuantitativos de QS-04, QS-06 y QS-07 siguen siendo criterios de evaluación, no resultados medidos.
+
+El prototipo interactivo permite explorar visualmente algunos aspectos de confidencialidad, integridad, trazabilidad y usabilidad. Sin embargo, su existencia no cambia el estado técnico de los requisitos QR ni acredita los escenarios QS-01 a QS-07.
 
 ### 3.2. Restricciones
 
@@ -249,6 +280,8 @@ Las cookies de sesión, CSRF y los parámetros de expiración desarrollan la dec
 
 No se presentan como requisitos prescritos explícitamente por Horizon University.
 
+El selector de roles del prototipo HTML no reemplaza estas decisiones técnicas.
+
 ### 4.6. ADR-005 — Auditoría persistente
 
 ADR-005 establece la conservación de eventos relevantes mediante registros persistentes y transacciones compartidas.
@@ -264,6 +297,8 @@ ADR-005 establece la conservación de eventos relevantes mediante registros pers
 Los eventos obligatorios se registrarán en la misma transacción de negocio que los cambios relacionados.
 
 `caseSequence` permitirá ordenar el historial dentro de cada caso, mientras que `AdvisingCase.version` se utilizará para el control de modificaciones concurrentes.
+
+El historial local del prototipo permite ilustrar esta responsabilidad, pero no demuestra atomicidad ni persistencia de eventos en PostgreSQL.
 
 ### 4.7. Responsabilidades de componentes
 
@@ -283,6 +318,8 @@ Los eventos obligatorios se registrarán en la misma transacción de negocio que
 Las pruebas de integración pueden involucrar varios componentes, por lo que ninguna asignación de la tabla implica responsabilidad exclusiva.
 
 La tabla técnica SESSION pertenece funcionalmente a CMP-02, que utiliza CMP-09 para acceder a PostgreSQL.
+
+Estos componentes corresponden a la arquitectura del backend propuesta y no deben confundirse con las funciones JavaScript internas del prototipo HTML.
 
 ## 5. Entidades, interfaces y pruebas
 
@@ -352,9 +389,11 @@ Las operaciones de escritura no permitirán que el cliente imponga identidades, 
 | T-REC-02 | ¿Un respaldo permite recuperar información coherente? | Archivo, restauración y relaciones. |
 | T-DEP-01 | ¿El entorno es reproducible y restringe accesos? | Configuración, instrucciones y conectividad. |
 
-Estas preguntas siguen sin respuesta empírica en la línea base documental registrada.
+Estas preguntas siguen sin respuesta empírica respecto a la arquitectura integrada.
 
-El [Validation Plan](validation/test-plan.md) define los procedimientos. [Validation Findings](validation/findings.md) registrará los resultados cuando existan ejecuciones verificables.
+El [Validation Plan](validation/test-plan.md) define los procedimientos y [Validation Findings](validation/findings.md) registra el estado actual y los resultados cuando existan ejecuciones verificables.
+
+**Estado actual:** 18 pruebas técnicas en `NOT EXECUTED`.
 
 ## 6. Riesgos, backlog y brechas
 
@@ -372,7 +411,7 @@ El [Validation Plan](validation/test-plan.md) define los procedimientos. [Valida
 | R-08 — Persistencia y respaldos | QR-06, QS-07. | B-03, B-11. | T-REC-01, T-REC-02 |
 | R-09 — Acoplamiento | QR-04, AD-05. | B-05 a B-08. | T-MOD-01 |
 | R-10 — Viabilidad temporal | C-09. | Priorización B-01 a B-13. | Seguimiento del esfuerzo cuando exista estimación. |
-| R-11 — Estado sobredimensionado | Evidencia y veracidad documental. | B-13. | Informe de campaña con alcance explícito. |
+| R-11 — Confusión entre prototipo y arquitectura implementada | Evidencia y veracidad documental. | B-13. | Separación explícita entre demostración local y pruebas técnicas. |
 
 Estas relaciones permiten identificar actividades destinadas a reducir los riesgos, pero no implican que las mitigaciones hayan sido ejecutadas.
 
@@ -382,7 +421,7 @@ La cobertura documental se establece cuando un requisito tiene una responsabilid
 
 Sin embargo, esta cobertura debe evaluarse por suficiencia, no únicamente por la presencia del identificador en una tabla.
 
-La cobertura de implementación requerirá código identificable.
+La cobertura de implementación requerirá código identificable dentro de la arquitectura propuesta.
 
 La cobertura de ejecución exigirá pruebas con una revisión determinada, entorno, resultados y evidencia.
 
@@ -390,13 +429,16 @@ Una prueba parcial podrá demostrar un camino funcional sin comprobar todas las 
 
 Las principales brechas registradas son:
 
-- Implementación todavía no demostrada.
-- Pruebas y evidencias reproducibles no disponibles.
+- Implementación integrada de C-WEB, C-API, C-DB y X-SIS todavía no disponible.
+- Pruebas y evidencias técnicas reproducibles no disponibles.
 - Políticas institucionales de estados, permisos y cierre pendientes.
 - Definiciones de overdue, escalation y reopening sin confirmar.
 - Políticas de retención, anonimización y datos reales pendientes.
 - Parámetros técnicos sujetos a verificación.
 - Responsables y estimaciones del backlog pendientes de asignación.
+- Separación necesaria entre las simulaciones del prototipo y los mecanismos técnicos propuestos.
+
+El prototipo HTML reduce la necesidad de imaginar visualmente los flujos, pero no elimina las brechas de implementación, seguridad y verificación técnica.
 
 Una capacidad puede tener un diseño técnico detallado y continuar condicionada por estas decisiones.
 
@@ -414,10 +456,13 @@ Una capacidad puede tener un diseño técnico detallado y continuar condicionada
 | Cambio de sesiones o CSRF | Seguridad, dominio, interfaces y ADR-004. | T-AUTH-01, T-SEC-02 |
 | Sustitución del mock SIS | Contexto, contenedores, despliegue e interfaces. | T-SIS-01, T-DEP-01 |
 | Cambio de topología | V-DEP y deployment-assumptions.md. | T-DEP-01, T-REC-01, T-PERF-01 según impacto |
+| Cambio en flujos del prototipo | Prototipo, README y documentos funcionales afectados. | Revisión de coherencia; las pruebas técnicas seguirán pendientes hasta su ejecución. |
 
 Los cambios deberán conservar su motivo, alcance y versión documental.
 
 No se reutilizarán automáticamente resultados anteriores cuando se modifiquen condiciones relevantes de su ejecución.
+
+Los cambios visuales del prototipo no deberán interpretarse automáticamente como modificaciones en los contratos o componentes de la arquitectura propuesta.
 
 ### 7.2. Ejemplo de recorrido completo
 
@@ -435,11 +480,13 @@ El requisito **FR-11 — Resolution** permite mostrar cómo se relacionan una ne
 
 **Interfaz:** API Contracts propone la operación de resolución y las respuestas `409 Conflict` cuando existen versiones desactualizadas o condiciones de negocio incumplidas.
 
+**Prototipo:** `prototype/index.html` permite ilustrar de forma interactiva la resolución de casos y las restricciones locales relacionadas. Sin embargo, no implementa el control transaccional ni la concurrencia de la arquitectura propuesta.
+
 **Validación:** T-LIFE-01 comprobará las guardas de cierre. T-LIFE-02 evaluará la consistencia cuando resolución y seguimiento compitan sobre un mismo caso.
 
 Cuando se ejecuten estas pruebas, `validation/findings.md` deberá enlazar sus resultados y evidencias.
 
-Hasta entonces, el recorrido demuestra trazabilidad documental, no cumplimiento técnico comprobado.
+Hasta entonces, el recorrido demuestra trazabilidad documental y ofrece una demostración visual complementaria, pero no cumplimiento técnico comprobado.
 
 ### 7.3. Criterios de revisión de la matriz
 
@@ -453,8 +500,9 @@ La matriz deberá revisarse utilizando los siguientes criterios:
 6. Los resultados futuros identifican revisión, entorno y alcance.
 7. Las entidades, contratos y mecanismos utilizan nombres consistentes.
 8. Los cambios de requisitos, reglas o pruebas actualizan las relaciones correspondientes sin atribuir automáticamente cobertura de implementación.
+9. Las capacidades representadas por el prototipo se distinguen de las funcionalidades técnicamente implementadas y verificadas.
 
-La matriz funcionará como herramienta de revisión bidireccional entre las necesidades, la solución propuesta y la evidencia futura.
+La matriz funcionará como herramienta de revisión bidireccional entre las necesidades, la solución propuesta, el prototipo demostrativo y la evidencia futura.
 
 ## 8. Documentos relacionados y mantenimiento
 
@@ -468,22 +516,29 @@ La matriz funcionará como herramienta de revisión bidireccional entre las nece
 - [Lifecycle and Runtime](design/lifecycle-and-runtime.md)
 - [API Contracts](design/interfaces.md)
 - [Security Design](design/security.md)
+- [Deployment Assumptions](deployment-assumptions.md)
 - [Validation Plan](validation/test-plan.md)
 - [Validation Findings](validation/findings.md)
 - [Project Status](project-status.md)
+- [Prototipo interactivo y limitaciones](../../prototype/README.md)
+- [Prototipo HTML](../../prototype/index.html)
 
 ### 8.2. Actualización y conclusión
 
 La matriz deberá actualizarse cuando cambien los requisitos, las decisiones arquitectónicas, los componentes, los contratos, las reglas de negocio, la implementación o las pruebas.
 
-Los resultados futuros deberán incluir referencias a ejecuciones identificadas mediante RUN-ID y evidencia verificable.
+Los cambios relevantes en el prototipo también deberán revisarse para identificar si afectan la correspondencia visual con los requisitos documentados.
 
-Una relación documental no se convertirá automáticamente en una declaración de cumplimiento.
+Los resultados técnicos futuros deberán incluir referencias a ejecuciones identificadas mediante RUN-ID y evidencia verificable.
+
+Una relación documental o una demostración interactiva no se convertirá automáticamente en una declaración de cumplimiento técnico.
 
 La cobertura se evaluará según la suficiencia y coherencia de los elementos relacionados, y no únicamente por la cantidad de referencias registradas.
 
 El diseño de DH-01 establece conexiones trazables entre las necesidades académicas, los drivers, las decisiones arquitectónicas, los componentes, el modelo de datos y los procedimientos de validación.
 
-La implementación y la conformidad técnica continúan pendientes de demostración conforme a la línea base documental registrada.
+La Evaluación 2 incorpora un prototipo HTML interactivo que representa los flujos principales del sistema, pero no implementa las responsabilidades de C-API, C-DB o X-SIS ni verifica los atributos de calidad de la arquitectura.
 
-Este documento constituye la referencia central para revisar la consistencia de los artefactos de la Evaluación 2 y localizar la evidencia necesaria cuando se ejecute el prototipo.
+La implementación integrada y la conformidad técnica continúan pendientes de demostración. Las 18 pruebas técnicas permanecen en estado `NOT EXECUTED`.
+
+**Este documento constituye la referencia central para revisar la consistencia de los artefactos de la Evaluación 2 y localizar la evidencia necesaria cuando se implemente y valide el sistema integrado DH-01. El prototipo HTML disponible es un recurso de demostración y no constituye evidencia de cumplimiento técnico de la arquitectura propuesta.**

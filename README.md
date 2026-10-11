@@ -4,7 +4,7 @@
 **Asignatura:** Software Design II  
 **Entrega:** Evaluation 2 — Architecture and Design Review  
 **Fecha:** 11 de octubre de 2026  
-**Estado:** Diseño arquitectónico documentado
+**Estado:** Diseño arquitectónico documentado y prototipo interactivo de demostración
 
 ## Descripción
 
@@ -31,6 +31,29 @@ Se propone un **monolito modular** compuesto por:
 
 La arquitectura prioriza mantenibilidad, integridad de los datos, autorización contextual y trazabilidad.
 
+Estas tecnologías corresponden a la arquitectura diseñada y no a una implementación completa incluida en la entrega.
+
+## Prototipo interactivo
+
+Se incluye un [prototipo navegable](prototype/index.html) que permite explorar los principales flujos del sistema mediante datos sintéticos y lógica simulada.
+
+El prototipo presenta interfaces diferenciadas para los cinco roles y permite demostrar:
+
+- Registro y consulta de solicitudes.
+- Clasificación, asignación y reasignación de casos.
+- Atención, solicitudes de información y seguimiento.
+- Registro de recomendaciones y notas internas.
+- Resolución y visualización del historial.
+- Simulación de restricciones y conflictos de versión.
+
+**Cómo ejecutarlo:** descargar el repositorio y abrir `prototype/index.html` en un navegador compatible con JavaScript. No requiere instalar dependencias ni iniciar un servidor.
+
+El prototipo utiliza almacenamiento local (`localStorage`) y no implementa los servicios Node.js/Express, PostgreSQL ni la integración HTTP con X-SIS descritos en la arquitectura.
+
+Los controles de acceso y los conflictos mostrados son simulaciones, no pruebas de seguridad o concurrencia del backend.
+
+Consulta [Alcance y limitaciones del prototipo](prototype/README.md).
+
 ## Documentación
 
 | Apartado | Documento |
@@ -52,8 +75,12 @@ La arquitectura prioriza mantenibilidad, integridad de los datos, autorización 
 
 ## Estado de la entrega
 
-La Evaluación 2 presenta una **propuesta de arquitectura y diseño**, con requisitos, decisiones, diagramas, contratos, modelos y procedimientos de validación documentados.
+La Evaluación 2 presenta una **propuesta de arquitectura y diseño**, acompañada de un **prototipo interactivo de demostración**.
 
-No se incluye un prototipo funcional. Las 18 pruebas definidas permanecen sin ejecutar y las políticas institucionales pendientes están identificadas en la documentación.
+La documentación incluye requisitos, decisiones arquitectónicas, diagramas, contratos, modelos, riesgos, trazabilidad y procedimientos de validación.
+
+El prototipo permite explorar visualmente los procesos y reglas principales, pero no constituye una implementación completa de la arquitectura.
+
+Las **18 pruebas técnicas previstas permanecen en estado `NOT EXECUTED`**, y las políticas institucionales pendientes se encuentran identificadas en la documentación.
 
 **Punto de entrada recomendado:** [Architecture and Design Document](docs/evaluation-2/architecture-and-design.md).

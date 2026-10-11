@@ -2,7 +2,8 @@
 
 **Driver principal:** AD-02 — Confidentiality and Controlled Access  
 **Decisiones relacionadas:** ADR-004 y ADR-005  
-**Escenario principal:** QS-01
+**Escenario principal:** QS-01  
+**Estado:** Diseño de seguridad documentado; prototipo HTML interactivo disponible; controles de backend pendientes de implementación y validación
 
 ## 1. Propósito, activos y amenazas
 
@@ -12,7 +13,11 @@ El diseño responde a FR-14, QR-01, QR-02, BR-07 y BR-08. La autorización depen
 
 Conforme a ADR-004, la autenticación utilizará identidades ficticias administradas internamente mediante sesiones opacas de servidor.
 
-La propuesta busca establecer controles verificables para el prototipo, sin asumir integración con un proveedor institucional real de identidad.
+La propuesta busca establecer controles verificables para una futura implementación integrada, sin asumir conexión con un proveedor institucional real de identidad.
+
+La Evaluación 2 incluye un [prototipo HTML interactivo](../../../prototype/index.html) que permite explorar interfaces diferenciadas, roles y restricciones simuladas utilizando datos sintéticos.
+
+**El prototipo no implementa autenticación real, sesiones de servidor, autorización contextual en una API ni transacciones PostgreSQL.** Los mecanismos de seguridad descritos a continuación corresponden a la arquitectura propuesta.
 
 ### 1.1. Activos y límites de confianza
 
@@ -33,7 +38,9 @@ PostgreSQL no estará expuesto directamente a los clientes web.
 
 Las respuestas del SIS simulado se tratarán como entradas externas, aunque contengan exclusivamente datos sintéticos.
 
-### 1.2. Modelo de amenazas del prototipo
+Estas medidas deberán verificarse posteriormente mediante una implementación del backend y pruebas reproducibles.
+
+### 1.2. Modelo de amenazas de la implementación propuesta
 
 El análisis contempla usuarios legítimos que intentan operaciones fuera de sus permisos, clientes que manipulan solicitudes HTTP, errores de implementación y accesos técnicos con privilegios excesivos.
 
@@ -53,6 +60,8 @@ Las principales superficies de entrada son:
 
 La seguridad deberá verificarse en el backend incluso cuando `C-WEB` oculte determinadas funcionalidades.
 
+El prototipo HTML representa algunas restricciones a nivel local. Estas demostraciones no permiten verificar los controles de una API frente a solicitudes directas o manipuladas.
+
 ## 2. Autenticación, sesiones y protección de solicitudes
 
 ### 2.1. Credenciales
@@ -67,9 +76,11 @@ No se almacenarán contraseñas en texto plano ni se incluirán en logs, respues
 
 Las cuentas ficticias se crearán mediante un procedimiento controlado de preparación de datos.
 
-El prototipo inicial no contempla registro público de usuarios ni recuperación de contraseñas por correo electrónico.
+La implementación inicial propuesta no contempla registro público de usuarios ni recuperación de contraseñas por correo electrónico.
 
 Los errores de autenticación utilizarán mensajes genéricos para dificultar la enumeración de cuentas.
+
+**Estado actual:** el selector de perfiles del prototipo HTML es un mecanismo de demostración y no constituye autenticación mediante credenciales reales o sintéticas verificadas por un servidor.
 
 ### 2.2. Mecanismo de sesión
 
@@ -92,6 +103,8 @@ Los valores de expiración y limitación de intentos son propuestas técnicas, n
 En entornos desplegados y accesibles mediante red se utilizará HTTPS.
 
 Las posibles excepciones para desarrollo local mediante loopback deberán documentarse y no trasladarse indiscriminadamente a otros entornos.
+
+El almacenamiento `localStorage` del prototipo HTML no representa la tabla `SESSION` ni el mecanismo de sesión diseñado.
 
 ### 2.3. Ciclo de vida de la sesión
 
@@ -121,7 +134,7 @@ La desactivación de cuentas o la modificación de credenciales podrá requerir 
 
 **Concurrencia de sesiones.** El número de sesiones simultáneas por usuario no constituye una política institucional confirmada.
 
-El prototipo deberá establecer explícitamente si permite varias sesiones y qué alcance tiene cada operación de logout.
+La implementación deberá establecer explícitamente si permite varias sesiones y qué alcance tiene cada operación de logout.
 
 No se afirmará que existe cierre global de sesiones cuando el mecanismo solo invalide la sesión actual.
 
@@ -145,6 +158,8 @@ La configuración CORS estará restringida a los orígenes autorizados. No se co
 
 El identificador de sesión no se almacenará en `localStorage` ni se devolverá dentro de respuestas JSON.
 
+**Esta sección describe el comportamiento de la futura arquitectura.** El prototipo HTML no dispone del backend ni de las sesiones necesarias para demostrar protección CSRF real.
+
 ## 3. Autorización contextual, permisos y delegaciones
 
 ### 3.1. Matriz propuesta de permisos
@@ -167,6 +182,8 @@ La matriz representa una propuesta conservadora de autorización.
 Los roles institucionales no concederán acceso ilimitado a los recursos del sistema.
 
 Las delegaciones, permisos excepcionales y ámbitos de acceso requerirán validación institucional.
+
+El prototipo HTML utiliza esta separación como referencia para representar las pantallas y acciones de los distintos perfiles. No constituye una implementación de autorización real.
 
 ### 3.2. Secuencia de decisión
 
@@ -200,7 +217,7 @@ La delegación de triage o asignación requerirá definir:
 - Vigencia.
 - Mecanismo de revocación.
 
-Estas capacidades no forman parte automáticamente del prototipo inicial.
+Estas capacidades no forman parte automáticamente del alcance inicial propuesto.
 
 Hasta definir e implementar un mecanismo institucionalmente aprobado, únicamente el Advising Coordinator autorizado podrá iniciar triage y realizar la clasificación y asignación inicial.
 
@@ -238,6 +255,8 @@ Los accesos administrativos, credenciales privilegiadas y respaldos deberán con
 La clasificación de la información será una propiedad aplicada por el backend y no solamente una decisión visual de la interfaz.
 
 Una respuesta JSON que contenga información no autorizada constituirá una exposición, aunque React no muestre esos campos.
+
+Por ello, ocultar determinadas secciones en el prototipo HTML es una ilustración de las políticas previstas, pero no demuestra que los datos sensibles estén protegidos frente a solicitudes directas.
 
 ### 4.2. Separación de información y minimización
 
@@ -301,6 +320,8 @@ Los respaldos de prueba tendrán acceso restringido y no deberán publicarse en 
 
 Las políticas institucionales de retención, anonimización y eliminación deberán definirse posteriormente. No se establece un plazo normativo sin una fuente institucional que lo respalde.
 
+El prototipo HTML utiliza exclusivamente información sintética y almacenamiento local, sin representar el mecanismo definitivo de respaldos y retención.
+
 ## 5. Auditoría de seguridad y manejo de fallos
 
 ### 5.1. Auditoría técnica y de negocio
@@ -326,6 +347,8 @@ La lectura de una nota no generará automáticamente un evento de negocio.
 
 Si una política futura exige auditar consultas de información sensible, deberán definirse alcance, volumen y retención de esos registros.
 
+El historial mostrado en el prototipo HTML es una simulación local y no constituye evidencia de auditoría persistente o transaccional.
+
 ### 5.2. Fallos y respuestas
 
 | Situación | Comportamiento esperado |
@@ -342,6 +365,8 @@ Los registros de auditoría de negocio no serán modificables mediante la API or
 
 Esta restricción no implica resistencia absoluta frente a administradores de PostgreSQL con privilegios elevados, limitación reconocida en ADR-005.
 
+Los mensajes y conflictos simulados por el prototipo no son respuestas HTTP provenientes de C-API y no demuestran el cumplimiento de estos contratos.
+
 ## 6. Seguridad del transporte, despliegue e integraciones
 
 ### 6.1. Punto de entrada y conexiones
@@ -356,11 +381,13 @@ Una configuración incorrecta del proxy podría afectar cookies `Secure`, contro
 
 PostgreSQL aceptará únicamente conexiones necesarias y autorizadas.
 
-Los puertos internos de Node.js y del simulador X-SIS no necesitarán exposición pública para la demostración.
+Los puertos internos de Node.js y del simulador X-SIS no necesitarán exposición pública para un entorno de demostración integrado.
 
 Las conexiones internas se protegerán según su exposición y características de red.
 
 La separación lógica de los nodos no implicará automáticamente aislamiento físico.
+
+**Alcance actual:** el prototipo HTML puede abrirse localmente en un navegador. Esto no constituye un despliegue seguro de la arquitectura C-WEB, C-API y C-DB.
 
 ### 6.2. Integración X-SIS
 
@@ -383,6 +410,8 @@ Las consultas a X-SIS se realizarán fuera de las transacciones que mantienen bl
 El mock no tendrá acceso directo a C-DB.
 
 Una futura conexión con el SIS institucional requerirá revisar autenticación, autorización, privacidad y protección de datos.
+
+X-SIS se mantiene como un servicio HTTP propuesto y no se encuentra implementado como parte del prototipo HTML actual.
 
 ### 6.3. Secretos y configuración
 
@@ -424,6 +453,8 @@ Los siguientes escenarios permitirán evaluar los mecanismos de seguridad propue
 
 Los identificadores `AB` identifican escenarios de abuso y no representan nuevos requisitos institucionales.
 
+El prototipo HTML puede ilustrar determinadas denegaciones visuales o conflictos, pero estos escenarios requieren pruebas mediante solicitudes directas a los servicios implementados.
+
 ### 7.2. Matriz de comprobaciones negativas
 
 | Actor | Operación negativa | Resultado esperado |
@@ -456,6 +487,8 @@ Las pruebas se desarrollan en el [Plan de Validación](../validation/test-plan.m
 
 Los parámetros de hash, la configuración TLS, las bibliotecas de seguridad y los permisos excepcionales deberán definirse y comprobarse antes de declarar conformidad con los escenarios de calidad.
 
+**Estado actual:** las pruebas técnicas relacionadas con estos controles permanecen en `NOT EXECUTED`. La existencia del prototipo HTML no sustituye estas verificaciones.
+
 ## 8. Respuesta a incidentes, riesgos y decisiones abiertas
 
 ### 8.1. Respuesta a una falla observada
@@ -472,7 +505,9 @@ El procedimiento propuesto será:
 6. Ejecutar nuevamente la prueba fallida y las verificaciones de regresión pertinentes.
 7. Registrar la corrección y su resultado conservando el historial de la incidencia.
 
-Este procedimiento corresponde al prototipo y no constituye un plan institucional completo de respuesta a incidentes.
+Este procedimiento corresponde a una futura implementación de DH-01 y no constituye un plan institucional completo de respuesta a incidentes.
+
+Si durante la demostración del prototipo se identifica una inconsistencia visual o funcional, deberá documentarse como una observación del prototipo y no confundirse automáticamente con una vulnerabilidad comprobada de C-API, que todavía no está implementada.
 
 ### 8.2. Riesgos residuales
 
@@ -484,8 +519,9 @@ Persisten riesgos relacionados con:
 - Políticas de retención pendientes de aprobación.
 - Errores de implementación no detectados por pruebas.
 - Falta de integración con un proveedor institucional real de identidad.
+- Confusión entre las restricciones simuladas del prototipo y los mecanismos de seguridad de servidor.
 
-La autenticación interna constituye una propuesta viable para un prototipo independiente, pero no demuestra equivalencia con la infraestructura de identidad de Horizon University.
+La autenticación interna constituye una propuesta viable para una implementación de prueba independiente, pero no demuestra equivalencia con la infraestructura de identidad de Horizon University.
 
 Cualquier integración futura deberá revisar las identidades, sesiones y correspondencias de usuarios, manteniendo las políticas de autorización contextual.
 
@@ -515,7 +551,12 @@ Las decisiones que afecten permisos, contratos de interfaces o persistencia debe
 - [API Contracts](interfaces.md)
 - [Architecture Decision Records](../adr/README.md)
 - [Validation Plan](../validation/test-plan.md)
+- [Validation Findings](../validation/findings.md)
+- [Project Status](../project-status.md)
+- [Prototipo interactivo y limitaciones](../../../prototype/README.md)
 
 Este documento establece el diseño propuesto de autenticación, autorización contextual, confidencialidad, protección de sesiones y auditoría para DH-01.
 
-Su conformidad dependerá de las pruebas técnicas y de la validación de las políticas institucionales pendientes, manteniendo diferenciados el diseño arquitectónico y los resultados efectivamente comprobados.
+La Evaluación 2 incluye un prototipo HTML que representa roles y flujos académicos, pero no implementa los mecanismos de seguridad de servidor definidos en esta propuesta.
+
+**La conformidad técnica de DH-01 dependerá de ejecutar las pruebas correspondientes sobre una implementación integrada, mientras que la aceptación institucional requerirá confirmar las políticas pendientes. Las 18 pruebas técnicas del plan permanecen en estado `NOT EXECUTED`.**

@@ -1,8 +1,8 @@
 # DH-01 — Plan de Validación Arquitectónica y Funcional
 
 **Cobertura:** FR-01 a FR-14, QR-01 a QR-06 y QS-01 a QS-07  
-**Estado:** Plan documentado; pruebas técnicas y funcionales no ejecutadas  
-**Alcance:** Evaluación documental de la arquitectura y estrategia de validación para una implementación futura
+**Estado:** Plan documentado; prototipo HTML interactivo disponible; 18 pruebas técnicas no ejecutadas  
+**Alcance:** Revisión arquitectónica, demostración interactiva y estrategia de validación de una futura implementación
 
 ## 1. Propósito, alcance y estrategia
 
@@ -14,17 +14,22 @@ La validación prioriza los mecanismos que podrían comprometer la confidenciali
 
 También contempla pruebas de funcionalidades, interfaces, rendimiento, modificabilidad, usabilidad, recuperación y despliegue.
 
-**La entrega actual corresponde a una propuesta de arquitectura y diseño. No incluye un prototipo funcional ni resultados de pruebas ejecutadas.**
+**La entrega actual incluye una propuesta de arquitectura y diseño, acompañada de un prototipo HTML interactivo de demostración ubicado en `prototype/index.html`.**
 
-En consecuencia, este documento distingue entre:
+El prototipo utiliza datos sintéticos, lógica ejecutada en el navegador y almacenamiento mediante `localStorage`. Permite explorar roles, estados y flujos académicos, pero no implementa la arquitectura integrada React, Node.js/Express y PostgreSQL.
 
-- **Revisión documental:** evaluación de la coherencia de los artefactos arquitectónicos.
-- **Validación técnica planificada:** procedimientos que requerirán código y un entorno ejecutable.
-- **Resultados observados:** información que únicamente podrá registrarse después de realizar pruebas verificables.
+En consecuencia, se distinguen cuatro elementos:
 
-Los resultados esperados no se consideran resultados obtenidos.
+- **Revisión documental:** evaluación de la coherencia entre requisitos, decisiones, contratos y vistas arquitectónicas.
+- **Prototipo interactivo:** demostración local de interfaces, roles y comportamientos simulados.
+- **Validación técnica planificada:** procedimientos que requieren una implementación del backend, persistencia e infraestructura.
+- **Resultados observados:** información obtenida y respaldada mediante ejecuciones verificables.
 
-El estado de ejecución de cada prueba se encuentra en [Validation Findings](findings.md).
+La existencia del prototipo no constituye evidencia de que los mecanismos técnicos de seguridad, concurrencia, auditoría o recuperación funcionen en la arquitectura propuesta.
+
+Los resultados esperados tampoco se consideran resultados obtenidos.
+
+El estado de ejecución de cada prueba se documenta en [Validation Findings](findings.md).
 
 ### 1.1. Estrategia de validación
 
@@ -32,20 +37,21 @@ La estrategia contempla diferentes niveles de evaluación.
 
 | Nivel | Objetivo | Actividades previstas | Momento |
 |---|---|---|---|
-| Revisión documental | Evaluar la coherencia de requisitos, decisiones y vistas. | Revisar identificadores, responsabilidades, reglas, estados y supuestos. | Evaluación 2 |
+| Revisión documental | Evaluar coherencia de requisitos, decisiones y vistas. | Revisar identificadores, responsabilidades, reglas, estados y supuestos. | Evaluación 2 |
+| Demostración interactiva | Ilustrar el comportamiento esperado del sistema. | Explorar roles, formularios, estados, restricciones y seguimiento. | Evaluación 2 |
 | Pruebas unitarias | Verificar reglas de dominio y autorización. | Transiciones, resolución, audiencias y validaciones. | Implementación futura |
 | Integración | Evaluar la colaboración entre componentes y PostgreSQL. | Transacciones, restricciones, auditoría y concurrencia. | Implementación futura |
 | API | Comprobar contratos y seguridad mediante solicitudes directas. | Autenticación, permisos, errores y versiones. | Implementación futura |
 | Flujo completo | Verificar operaciones desde C-WEB hasta la persistencia. | Creación, triage, asignación, atención y resolución. | Implementación futura |
 | Calidad y operación | Evaluar QS-04 a QS-07. | Rendimiento, modificabilidad, usabilidad y recuperación. | Implementación futura |
 
-La revisión documental puede realizarse sin un prototipo completo.
+La revisión documental y la exploración del prototipo pueden realizarse sin implementar la arquitectura completa.
 
-En cambio, las pruebas funcionales, de integración y rendimiento requieren una implementación identificable y un entorno reproducible.
+En cambio, las pruebas técnicas, transaccionales y de integración necesitan código ejecutable, servicios identificables y un entorno reproducible.
 
-Se dará prioridad a seguridad, integridad y consistencia antes de realizar mediciones de rendimiento.
+La evaluación dará prioridad a la seguridad, integridad y consistencia antes de realizar mediciones de rendimiento.
 
-Las herramientas específicas se seleccionarán cuando se defina el entorno técnico. No se afirma que exista actualmente un framework de pruebas instalado.
+Las herramientas específicas de pruebas se seleccionarán cuando se implemente el entorno técnico. No se afirma que actualmente exista un framework de pruebas instalado.
 
 ### 1.2. Prioridades
 
@@ -59,17 +65,17 @@ Las pruebas se organizan según el impacto potencial de una falla.
 
 Esta clasificación permitirá priorizar una futura implementación y seleccionar verificaciones de mayor valor.
 
-La prioridad no implica que una prueba haya sido ejecutada.
+La prioridad de una prueba no implica que haya sido ejecutada.
 
 ## 2. Entorno, datos y preparación de la validación
 
 ### 2.1. Entorno propuesto
 
-El entorno de pruebas utilizaría la arquitectura documentada en las vistas y decisiones del proyecto.
+El entorno técnico de pruebas utilizaría la arquitectura documentada en las vistas y decisiones del proyecto.
 
 | Identificador | Tecnología propuesta | Función |
 |---|---|---|
-| C-WEB | React | Interfaz web. |
+| C-WEB | React | Interfaz web integrada. |
 | C-API | Node.js + Express | Backend y reglas de negocio. |
 | C-DB | PostgreSQL | Persistencia relacional. |
 | X-SIS | Servicio HTTP mock | Simulación de integración académica. |
@@ -82,9 +88,9 @@ El entorno deberá permitir:
 
 1. Iniciar C-WEB y C-API de forma reproducible.
 2. Aplicar migraciones y cargar datos sintéticos.
-3. Consultar los registros persistidos en PostgreSQL.
-4. Controlar las respuestas, errores y demoras de X-SIS.
-5. Ejecutar operaciones concurrentes utilizando conexiones independientes.
+3. Consultar registros persistidos en PostgreSQL.
+4. Controlar respuestas, errores y demoras de X-SIS.
+5. Ejecutar operaciones concurrentes mediante conexiones independientes.
 6. Introducir fallos controlados.
 7. Registrar resultados y conservar evidencia sanitizada.
 
@@ -92,9 +98,9 @@ Las pruebas de concurrencia y rollback deberán utilizar PostgreSQL real dentro 
 
 Los mocks de repositorios no permitirían demostrar por sí solos bloqueos transaccionales ni atomicidad real.
 
-Las restauraciones deberán realizarse exclusivamente en bases de datos sintéticas aisladas.
+Las restauraciones deberán realizarse exclusivamente sobre bases de datos sintéticas aisladas.
 
-**Estado actual:** el entorno descrito representa una configuración propuesta; no forma parte de una implementación entregada.
+**Estado actual:** el entorno técnico descrito es una propuesta y no se encuentra implementado. El prototipo HTML funciona localmente en el navegador, sin C-API, PostgreSQL ni X-SIS desplegados.
 
 ### 2.2. Fixtures sintéticos
 
@@ -114,21 +120,23 @@ Se proponen los siguientes conjuntos de datos para futuras pruebas.
 
 Las semillas deberán ser reproducibles y contener únicamente información ficticia.
 
+El prototipo actual utiliza datos sintéticos para representar escenarios de demostración. Dichos datos no sustituyen las semillas relacionales que deberán utilizarse durante las pruebas de PostgreSQL.
+
 El flujo inicial no permitirá delegación activa del triage. Una delegación futura requerirá autorización institucional y mecanismos explícitos de concesión y revocación.
 
 Se mantendrán conjuntos diferenciados para pruebas funcionales, seguridad, usabilidad y rendimiento.
 
-Cada prueba deberá indicar si requiere una base limpia o una secuencia previa de operaciones.
+Cada prueba deberá indicar si necesita una base limpia o una secuencia previa de operaciones.
 
 ### 2.3. Línea base y condiciones de entrada
 
-Antes de una campaña de pruebas deberá identificarse una revisión concreta del código y de la documentación.
+Antes de una campaña técnica deberá identificarse una revisión concreta del código y de la documentación.
 
 Los resultados se asociarán con la versión evaluada.
 
 | Precondición | Comprobación | Consecuencia si falta |
 |---|---|---|
-| Código ejecutable | C-WEB y C-API pueden iniciarse. | Las pruebas funcionales no podrán comenzar. |
+| Código ejecutable | C-WEB y C-API pueden iniciarse. | Las pruebas integradas no podrán comenzar. |
 | PostgreSQL preparado | Migraciones y semillas aplicadas. | No iniciar pruebas de persistencia. |
 | Usuarios sintéticos | Roles y relaciones definidos. | Corregir fixtures. |
 | Sesiones disponibles | Autenticación y persistencia configuradas. | Pruebas de sesión pendientes. |
@@ -140,9 +148,11 @@ Una precondición ausente antes de intentar una prueba no constituye automática
 
 El estado `BLOCKED` se reservará para intentos iniciados y documentados que no puedan continuar.
 
+El funcionamiento local del prototipo HTML no satisface por sí mismo estas condiciones de entrada para las pruebas del backend.
+
 ## 3. Catálogo y trazabilidad de pruebas
 
-El catálogo contiene **18 pruebas previstas**, relacionadas con requisitos funcionales, escenarios de calidad y decisiones arquitectónicas.
+El catálogo contiene **18 pruebas técnicas previstas**, relacionadas con requisitos funcionales, escenarios de calidad y decisiones arquitectónicas.
 
 | ID | Objetivo | Prioridad | Referencias |
 |---|---|---|---|
@@ -183,11 +193,26 @@ Ninguno de estos identificadores representa una prueba actualmente aprobada.
 
 La correspondencia completa con los requisitos se encuentra en la [Matriz de Trazabilidad](../traceability.md).
 
+### 3.2. Relación del prototipo con el plan
+
+El prototipo HTML permite ilustrar algunos comportamientos que posteriormente deberán verificarse mediante las pruebas técnicas.
+
+| Comportamiento demostrado | Pruebas relacionadas | Limitación |
+|---|---|---|
+| Vistas diferenciadas por rol. | T-SEC-01, T-SEC-02 | No existe autenticación ni autorización de servidor. |
+| Transiciones y resolución de casos. | T-LIFE-01 | No existen transacciones PostgreSQL. |
+| Conflictos de versión simulados. | T-LIFE-02 | No se demuestra concurrencia real. |
+| Historial de operaciones. | T-AUD-01 | La auditoría es local, no transaccional en servidor. |
+| Formularios y flujos de casos. | T-FUNC-01, T-TRIAGE-01 | No existe integración C-WEB → C-API → C-DB. |
+| Interfaces y navegación. | T-UX-01 | No se ha ejecutado la evaluación formal con cinco participantes. |
+
+Esta relación permite utilizar el prototipo como apoyo para explicar la arquitectura sin atribuirle resultados de las pruebas.
+
 ## 4. Procedimientos de los escenarios de calidad
 
 Los procedimientos siguientes especifican acciones y criterios de aceptación para los escenarios prioritarios.
 
-Su ejecución dependerá de una implementación posterior.
+Su ejecución técnica dependerá de una implementación posterior.
 
 ### 4.1. T-SEC-01 — Confidencialidad
 
@@ -210,6 +235,8 @@ Ninguna respuesta destinada al Student deberá contener `InternalNote`.
 Las escrituras rechazadas no deberán modificar datos.
 
 **Evidencia esperada:** matriz de actor, recurso y operación; solicitudes y respuestas sanitizadas; comparación del estado persistido.
+
+La ocultación de notas internas en el prototipo únicamente ilustra el comportamiento previsto. No constituye una validación de autorización contextual del backend.
 
 ### 4.2. T-SEC-02 — CSRF y recursos anidados
 
@@ -249,6 +276,8 @@ El cierre válido deberá confirmar conjuntamente el estado del caso y el evento
 
 BR-05 se aplicará a todos los FollowUps `PENDING` del flujo inicial, sin diferenciar entre actividades obligatorias y opcionales.
 
+El prototipo permite presentar ejemplos de resolución y restricciones, pero no permite comprobar el compromiso transaccional de los registros.
+
 ### 4.4. T-LIFE-02 — Concurrencia
 
 Esta prueba evaluará la consistencia entre una operación de creación de seguimiento y una resolución que compiten sobre el mismo caso.
@@ -275,6 +304,8 @@ Las operaciones incompatibles deberán rechazarse mediante conflicto, sin pérdi
 Deberá indicarse el número de repeticiones realizadas.
 
 Una ejecución secuencial no será suficiente para demostrar el comportamiento concurrente.
+
+La simulación de conflictos que incorpora el prototipo no equivale a ejecutar esta prueba.
 
 ### 4.5. T-AUD-01 — Reasignación e historial
 
@@ -348,6 +379,8 @@ Se documentarán perfiles, instrucciones y condiciones de evaluación.
 
 La muestra no permitirá generalizar automáticamente los resultados a todos los usuarios de Horizon University.
 
+El prototipo HTML podrá utilizarse como material de interacción para esta evaluación si se aplica el procedimiento y se registran las respuestas. Su disponibilidad actual no implica que T-UX-01 haya sido ejecutada.
+
 ### 4.9. T-REC-01 — Reinicio controlado
 
 **Procedimiento:**
@@ -364,6 +397,8 @@ La muestra no permitirá generalizar automáticamente los resultados a todos los
 PostgreSQL permanecerá disponible durante toda la prueba.
 
 Esta verificación no demostrará alta disponibilidad ni recuperación ante pérdida física de la base de datos.
+
+La conservación de información del prototipo mediante `localStorage` no sustituye esta prueba.
 
 ## 5. Pruebas funcionales, contratos e integridad
 
@@ -690,7 +725,7 @@ Las pruebas que no cuenten con evidencia suficiente no se considerarán aprobada
 
 Un procedimiento escrito y su resultado esperado no representan una ejecución.
 
-**Estado actual de DH-01:** las 18 pruebas previstas permanecen como `NOT EXECUTED`.
+**Estado actual de DH-01:** las 18 pruebas técnicas previstas permanecen como `NOT EXECUTED`. La existencia del prototipo HTML no modifica este resultado.
 
 ### 8.3. Gestión de fallas y reevaluación
 
@@ -741,6 +776,7 @@ El cierre documental de la Evaluación 2 requiere que:
 7. La matriz de trazabilidad relacione requisitos, decisiones y pruebas.
 8. El estado de ejecución sea presentado correctamente.
 9. Las políticas y supuestos pendientes estén explícitos.
+10. El prototipo interactivo esté identificado como una demostración local, con sus limitaciones diferenciadas de la arquitectura propuesta.
 
 Para una futura campaña técnica, el cierre requerirá resultados reproducibles sobre las capacidades implementadas.
 
@@ -768,7 +804,7 @@ El plan establece procedimientos y criterios para verificar la propuesta arquite
 
 No demuestra por sí mismo que los controles de confidencialidad, concurrencia, persistencia o recuperación funcionen.
 
-Las pruebas que requieren una aplicación ejecutable permanecen pendientes porque DH-01 no incluye un prototipo en la Evaluación 2.
+Aunque DH-01 incluye un prototipo HTML interactivo, este no incorpora los contenedores integrados ni la infraestructura necesaria para ejecutar las pruebas técnicas del plan.
 
 Los objetivos cuantitativos QS-04, QS-06 y QS-07 corresponden a escenarios propuestos y no a compromisos institucionales de producción.
 
@@ -791,9 +827,10 @@ Las políticas pendientes de delegación, reapertura, retención y escalamiento 
 - [Traceability Matrix](../traceability.md)
 - [Validation Findings](findings.md)
 - [Project Status](../project-status.md)
+- [Prototipo interactivo y limitaciones](../../../prototype/README.md)
 
 Este documento constituye el **plan de validación arquitectónica y funcional de DH-01** para la Evaluación 2.
 
 Su contribución consiste en identificar los mecanismos críticos, establecer procedimientos reproducibles y definir qué evidencias permitirían comprobar las decisiones de diseño durante una implementación futura.
 
-**La entrega actual demuestra la planificación documental de la validación, no la ejecución de las pruebas ni el cumplimiento empírico de los escenarios de calidad.**
+**La entrega actual incluye planificación documental y un prototipo HTML navegable. No demuestra la ejecución de las 18 pruebas técnicas ni el cumplimiento empírico de los escenarios de calidad de la arquitectura propuesta.**

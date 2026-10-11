@@ -4,7 +4,7 @@
 **Estilo de modelado:** C4 Model — Container Level  
 **Decisión arquitectónica principal:** ADR-001 — Modular Monolith Architecture  
 **Decisiones relacionadas:** ADR-002, ADR-003, ADR-004 y ADR-005  
-**Estado:** Vista arquitectónica propuesta; contenedores no implementados
+**Estado:** Vista arquitectónica propuesta; contenedores no implementados; prototipo HTML interactivo disponible como demostración local
 
 ## 1. Propósito
 
@@ -30,7 +30,7 @@ La vista permite identificar:
 - El aislamiento de la persistencia y las dependencias externas.
 - Las decisiones arquitectónicas relacionadas.
 
-**Alcance de la Evaluación 2:** los contenedores y sus relaciones forman parte de una propuesta de diseño. No se ha implementado ni desplegado un prototipo funcional.
+**Alcance de la Evaluación 2:** los contenedores y sus relaciones forman parte de una propuesta de diseño. Se incluye un prototipo HTML interactivo de demostración en [`prototype/index.html`](../../../prototype/index.html), con datos sintéticos y lógica local. No se han implementado ni desplegado C-WEB (React), C-API, C-DB o X-SIS como contenedores de la arquitectura propuesta.
 
 ## 2. Diagrama de contenedores
 
@@ -41,13 +41,9 @@ flowchart LR
 
     subgraph DH["DH-01 — Límite del sistema"]
         direction LR
-
         WEB["C-WEB: Aplicación Web<br/>React<br/>Interfaz y presentación de casos"]
-
         API["C-API: Backend API<br/>Node.js + Express<br/>Gestión de casos, seguridad y auditoría"]
-
         DB[("C-DB: Base de Datos<br/>PostgreSQL<br/>Casos, sesiones, notas,<br/>seguimiento e historial")]
-
         WEB -->|"HTTPS / REST / JSON"| API
         API -->|"Protocolo PostgreSQL / SQL"| DB
     end
@@ -73,7 +69,6 @@ flowchart LR
 
     style DH fill:#17212E,stroke:#64748B,color:#E2E8F0
     style EX fill:#17212E,stroke:#64748B,color:#E2E8F0
-
     linkStyle default stroke:#94A3B8,stroke-width:2px
 ```
 
@@ -99,7 +94,7 @@ La autenticación se propone dentro de `C-API`, conforme a ADR-004. No se repres
 
 La integración `X-SIS` utiliza datos sintéticos y no implica acceso al SIS real de Horizon University.
 
-**El diagrama representa una arquitectura diseñada, no servicios actualmente desplegados.**
+**El diagrama representa una arquitectura diseñada, no servicios actualmente desplegados.** El prototipo HTML disponible no ejecuta las comunicaciones REST ni las transacciones PostgreSQL aquí representadas.
 
 ## 3. Descripción general de la arquitectura
 
@@ -140,8 +135,6 @@ Los módulos internos de `C-API` no representan servicios independientes y no re
 
 ### 3.2. Límites de confianza
 
-La arquitectura establece distintos límites de confianza:
-
 **Navegador y C-WEB**
 
 El navegador se considera un entorno no confiable para la aplicación definitiva de reglas de seguridad.
@@ -166,6 +159,8 @@ Las respuestas del simulador se tratarán como datos provenientes de una depende
 
 El adaptador verificará los formatos y manejará errores antes de entregar información a los módulos de negocio.
 
+El prototipo HTML existente no implementa estos límites de confianza mediante servicios independientes. Su selector de roles, lógica y persistencia se ejecutan localmente con fines demostrativos.
+
 ## 4. Contenedor C-WEB — Aplicación Web
 
 **Identificador:** C-WEB  
@@ -183,6 +178,8 @@ Su diseño buscará facilitar las tareas de estudiantes, asesores y coordinadore
 El frontend podrá adaptar las opciones visuales a los permisos recibidos, pero no será responsable de aplicar las decisiones finales de autorización.
 
 Todas las operaciones protegidas deberán verificarse en `C-API`.
+
+La entrega incluye un prototipo HTML independiente en `prototype/index.html`. Este prototipo sirve como referencia de experiencia de usuario y procesos, pero no equivale a una implementación de C-WEB con React e integración al backend.
 
 ### 4.2. Responsabilidades
 
@@ -254,6 +251,8 @@ Se propone:
 El diseño de autenticación utiliza cookies `HttpOnly`, `Secure` y `SameSite=Lax`, junto con protección CSRF según el contrato documentado.
 
 La política definitiva de acceso se aplicará en `C-API`.
+
+Estas son responsabilidades propuestas para la futura implementación. El prototipo HTML no implementa sesiones seguras del servidor ni protección CSRF real.
 
 ### 4.5. Comunicación
 
@@ -464,6 +463,8 @@ Las respuestas deberán respetar los contratos definidos y evitar la exposición
 
 Los errores HTTP, sus estructuras y el manejo de conflictos se detallan en [Diseño de Interfaces](../design/interfaces.md).
 
+**Estado de C-API:** este backend se encuentra documentado como parte de la arquitectura propuesta. El prototipo HTML actual no implementa estos módulos como servicios de servidor.
+
 ## 6. Contenedor C-DB — Base de Datos
 
 **Identificador:** C-DB  
@@ -557,6 +558,8 @@ PostgreSQL no garantiza por sí solo alta disponibilidad ni restauración autom�
 
 Estos mecanismos deberán comprobarse mediante T-REC-01 y T-REC-02 durante una eventual implementación.
 
+**Estado de C-DB:** PostgreSQL no forma parte del prototipo HTML entregado. La persistencia local mediante `localStorage` no equivale a la integridad relacional, transaccional ni a los procedimientos de recuperación de la base propuesta.
+
 ## 7. Sistema externo simulado X-SIS
 
 **Identificador:** X-SIS  
@@ -574,7 +577,7 @@ Como no existe una integración institucional confirmada, se propone representar
 
 El objetivo del simulador es permitir que los contratos y mecanismos de integración puedan evaluarse posteriormente sin acceder a datos reales.
 
-**X-SIS es parte del diseño propuesto. No se incluye un servicio mock implementado en la entrega de la Evaluación 2.**
+**X-SIS es parte del diseño propuesto. No se incluye un servicio mock HTTP implementado en la entrega de la Evaluación 2. El prototipo HTML no equivale a este servicio externo simulado.**
 
 ### 7.2. Estrategia de simulación
 
@@ -674,6 +677,8 @@ El manejo de estos escenarios será evaluado mediante T-SIS-01 cuando exista una
 | C-API | X-SIS | HTTP(S) / JSON mediante CMP-10. | Consultar contexto académico sintético. |
 
 Las relaciones representan interfaces arquitectónicas propuestas, no conexiones desplegadas actualmente.
+
+El prototipo HTML utiliza lógica y almacenamiento locales (`localStorage`) y no efectúa este flujo integrado entre contenedores.
 
 ### 8.1. Flujo general de una solicitud
 
@@ -876,6 +881,8 @@ La restauración de respaldos constituye una verificación adicional.
 
 Los objetivos de esta sección son criterios propuestos, no resultados medidos durante la Evaluación 2.
 
+Aunque el prototipo permite explorar aspectos de la navegación y del ciclo de vida, las 18 pruebas técnicas siguen en `NOT EXECUTED`.
+
 ## 11. Supuestos y restricciones
 
 La vista se fundamenta en los siguientes supuestos:
@@ -892,6 +899,7 @@ La vista se fundamenta en los siguientes supuestos:
 - No se contempla inicialmente un proceso independiente de procesamiento asíncrono.
 - Los recursos y la configuración definitiva dependerán de los supuestos de despliegue.
 - Los contenedores representados no han sido implementados ni desplegados en la entrega actual.
+- El prototipo HTML de `prototype/index.html` existe únicamente como interfaz y lógica simuladas; no equivale al C-WEB React integrado.
 
 Las políticas institucionales pendientes se mantienen identificadas en los requisitos y en el registro de decisiones abiertas.
 
@@ -957,7 +965,9 @@ La revisión documental deberá comprobar que:
 
 La revisión de estos elementos permite evaluar la consistencia del diseño.
 
-No demuestra que exista un sistema ejecutable.
+No demuestra que exista una implementación integrada de los contenedores descritos.
+
+El prototipo HTML puede ejecutarse localmente, pero no satisface por sí mismo los controles y conexiones de esta vista.
 
 ### 13.2. Validación mediante implementación futura
 
@@ -977,7 +987,7 @@ Si posteriormente se implementan los contenedores, podrán evaluarse:
 
 Estas verificaciones se encuentran previstas en el plan de validación.
 
-**No se han ejecutado como parte de la entrega documental actual.**
+**No se han ejecutado como parte de la entrega actual.** La existencia del prototipo interactivo no modifica el estado `NOT EXECUTED` de las 18 pruebas técnicas.
 
 ### 13.3. Evidencias previstas
 
@@ -1055,6 +1065,7 @@ Esta vista se complementa con:
 - [Plan de Validación](../validation/test-plan.md).
 - [Resultados de Validación](../validation/findings.md).
 - [Estado del Proyecto](../project-status.md).
+- [Prototipo interactivo y limitaciones](../../../prototype/README.md).
 
 Estos documentos desarrollan distintos niveles de detalle de una misma propuesta arquitectónica.
 
@@ -1074,6 +1085,6 @@ Las relaciones entre contenedores establecen límites claros: la interfaz no acc
 
 La propuesta también establece mecanismos documentados de integridad, auditoría, seguridad y recuperación, cuya eficacia deberá evaluarse cuando exista una implementación.
 
-**La Evaluación 2 entrega esta vista como parte de un diseño arquitectónico documentado, no como evidencia de contenedores implementados o desplegados.**
+**La Evaluación 2 entrega esta vista como parte de un diseño arquitectónico documentado, acompañada de un prototipo HTML interactivo en `prototype/index.html`. El prototipo facilita la exposición de flujos y roles, pero no constituye evidencia de contenedores implementados o desplegados ni de pruebas técnicas aprobadas.**
 
 La vista V-CON proporciona una base consistente para comprender la estructura técnica de DH-01 y relacionarla con la vista de componentes, el modelo de dominio, los contratos, los supuestos de despliegue y el plan de validación.

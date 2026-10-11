@@ -1,8 +1,8 @@
 # DH-01 — Estado del Proyecto, Riesgos y Plan de Trabajo
 
-**Proyecto:** Academic Advising Case Management System  
-**Documento:** Evaluation 2 — Project Status, Risks and Work Plan  
-**Estado general:** Diseño arquitectónico documentado; implementación y validación funcional no realizadas  
+
+**Estado general:** Diseño arquitectónico documentado y prototipo interactivo disponible; backend y pruebas técnicas pendientes
+
 **Alcance:** Estado de la Evaluación 2 y planificación de actividades posteriores
 
 ## 1. Propósito y estado del proyecto
@@ -11,11 +11,13 @@ Este documento presenta el estado de DH-01, los riesgos identificados, las decis
 
 Su objetivo es distinguir entre los entregables documentales de la Evaluación 2 y las actividades técnicas que serían necesarias para construir y verificar el sistema.
 
-La entrega actual comprende requisitos, decisiones arquitectónicas, vistas, modelos, contratos, mecanismos de seguridad, escenarios de calidad, trazabilidad y un plan de validación.
+La entrega actual comprende requisitos, decisiones arquitectónicas, vistas, modelos, contratos, mecanismos de seguridad, escenarios de calidad, trazabilidad, un plan de validación y un prototipo HTML interactivo de demostración disponible en [`prototype/index.html`](../../prototype/index.html).
 
-**No se incluye un prototipo funcional ni se presentan pruebas de implementación ejecutadas.**
+**Se incluye un prototipo interactivo ejecutado en el navegador, con datos sintéticos, lógica simulada y persistencia mediante `localStorage`. No constituye una implementación del backend Node.js/Express, la base PostgreSQL ni la integración HTTP con X-SIS. Las 18 pruebas técnicas del plan siguen en `NOT EXECUTED`.**
 
-Por tanto, las actividades de desarrollo y validación descritas en este documento representan planificación futura y no obligaciones técnicas ya completadas.
+Por tanto, las actividades de implementación de la arquitectura y validación técnica descritas en este documento representan planificación futura; el prototipo interactivo constituye un artefacto de demostración ya disponible y no sustituye tales actividades.
+
+**Alcance del prototipo:** `prototype/index.html` es un artefacto autónomo y navegable para mostrar los cinco perfiles, las siete etapas del ciclo de vida y los flujos principales. El selector de roles, las restricciones de acceso y los conflictos de versión son simulaciones locales. No se han ejecutado las 18 pruebas técnicas del plan; la documentación de alcance está en [`prototype/README.md`](../../prototype/README.md).
 
 ### 1.1. Criterios de estado
 
@@ -46,10 +48,11 @@ La revisión documental, la validación técnica y la aceptación institucional 
 | Trazabilidad | Matriz documental disponible. | Incorporar referencias a implementación y evidencia cuando existan. |
 | Plan de validación | Dieciocho pruebas previstas. | Ejecutar las pruebas correspondientes al alcance implementado. |
 | Resultados de validación | Estado documental registrado. | Incorporar resultados verificables cuando se ejecuten pruebas. |
-| Prototipo funcional | No incluido en la entrega. | Desarrollo opcional o posterior según el alcance acordado. |
+| Prototipo interactivo HTML | Incluido en `prototype/index.html`; interfaz y lógica simuladas con `localStorage`. | Puede emplearse en la exposición y, si se decide, servir de referencia para C-WEB. |
+| Implementación de C-API, C-DB y X-SIS | No incluida. | Desarrollo e integración posteriores según alcance acordado. |
 | Evidencias de ejecución | No disponibles. | Generarlas únicamente cuando existan pruebas reales. |
 
-La Evaluación 2 dispone de una propuesta arquitectónica documentada, pero no de una implementación sobre la cual demostrar funcionalidad o atributos de calidad.
+La Evaluación 2 dispone de una propuesta arquitectónica documentada y un prototipo navegable que ilustra flujos y restricciones. Este prototipo no demuestra los atributos de calidad del backend ni la ejecución de la arquitectura de contenedores propuesta.
 
 No se asigna un porcentaje global de avance porque no existe una estimación de esfuerzo aprobada que permita comparar de forma significativa documentación, desarrollo y validación.
 
@@ -73,7 +76,7 @@ Las valoraciones de probabilidad e impacto son estimaciones cualitativas inicial
 | R-08 | Persistencia o respaldos no verificables. | Media / Alto | T-REC-01 y restauración mediante T-REC-02. | Operación y datos. |
 | R-09 | Acoplamiento o dependencias circulares entre componentes. | Media / Alto | Contratos internos y T-MOD-01. | Arquitectura. |
 | R-10 | Tiempo insuficiente para una futura implementación semestral. | Alta / Alto | Incrementos, priorización y estimaciones realistas. | Coordinación del equipo. |
-| R-11 | Presentar propuestas como funcionalidades o pruebas aprobadas. | Media / Alto | Estados explícitos y resultados vinculados a evidencia. | Documentación y validación. |
+| R-11 | Confundir el prototipo HTML con una implementación de la arquitectura o con pruebas aprobadas. | Media / Alto | Identificar los límites del prototipo y vincular los resultados técnicos únicamente a evidencia. | Documentación y validación. |
 
 Los responsables indicados corresponden a **funciones propuestas**, no a asignaciones individuales confirmadas para una fase de implementación.
 
@@ -95,7 +98,7 @@ Las mitigaciones descritas son medidas previstas y no se consideran ejecutadas p
 | R-08 | Un reinicio pierde datos o un respaldo no permite restaurar. | Revisar persistencia y procedimientos. |
 | R-09 | Cambiar una categoría obliga a modificar autenticación o auditoría. | Revisar límites entre módulos. |
 | R-10 | Los incrementos acumulan trabajo sin estimaciones actualizadas. | Revisar prioridades y capacidad. |
-| R-11 | Un informe presenta pruebas aprobadas sin resultados verificables. | Corregir el estado y exigir evidencia. |
+| R-11 | Se afirma que el prototipo acredita seguridad, transacciones o pruebas técnicas. | Corregir la declaración y exigir resultados verificables del backend. |
 
 Estas señales sirven como criterios propuestos de supervisión. No describen incidentes observados en una aplicación ejecutable.
 
@@ -159,7 +162,7 @@ Si un cambio se acepta, deberán actualizarse los requisitos, ADR, contratos, di
 
 El backlog describe las actividades técnicas que permitirían transformar la propuesta arquitectónica en una implementación verificable.
 
-**Las actividades de desarrollo de este apartado corresponden a una fase futura y no forman parte del trabajo declarado como completado en la Evaluación 2.**
+**Las actividades de implementación de la arquitectura corresponden a una fase futura. El prototipo HTML ya incluido no satisface por sí mismo los criterios técnicos de finalización del backlog.**
 
 ### 4.1. Backlog propuesto
 
@@ -172,7 +175,7 @@ El backlog describe las actividades técnicas que permitirían transformar la pr
 | B-05 | Implementar creación, triage y asignación. | Alta | B-03, B-04. | T-FUNC-01 parcial y T-TRIAGE-01. | Pendiente |
 | B-06 | Implementar atención, información, seguimiento y notas. | Alta | B-05. | Operaciones y audiencias verificadas. | Pendiente |
 | B-07 | Implementar cierre, concurrencia y auditoría. | Crítica | B-05, B-06. | T-LIFE-01, T-LIFE-02, T-AUD-01 y T-TXN-01. | Pendiente |
-| B-08 | Implementar C-WEB y contratos API. | Alta | B-04 a B-07. | Flujo funcional y T-API-01. | Pendiente |
+| B-08 | Implementar C-WEB y contratos API. | Alta | B-04 a B-07. | Flujo funcional y T-API-01. | Pendiente; existe una referencia visual en el prototipo HTML. |
 | B-09 | Implementar X-SIS y adaptador. | Media | B-02 y contrato SIS. | T-SIS-01 reproducible. | Pendiente |
 | B-10 | Implementar consultas operacionales. | Media | B-03 a B-07. | Consultas autorizadas con datos representativos. | Pendiente |
 | B-11 | Validar despliegue y recuperación. | Alta | B-02 a B-09 según alcance. | T-DEP-01, T-REC-01 y T-REC-02. | Pendiente |
@@ -355,7 +358,7 @@ flowchart TD
 
 El diagrama muestra dependencias de producto y validación. No implica que todas las actividades deban realizarse estrictamente una después de otra.
 
-C-WEB podrá desarrollarse inicialmente con contratos simulados, pero su finalización funcional requerirá integrar los servicios correspondientes.
+El prototipo HTML existente puede servir como referencia de interfaz y flujos para C-WEB. La finalización de B-08 exigirá implementar e integrar los contratos y servicios previstos; no se considerará alcanzada por la simulación local.
 
 Las políticas institucionales pendientes podrán representarse mediante supuestos explícitos durante el desarrollo, sin declararlas aprobadas.
 
@@ -475,7 +478,7 @@ Esto no autoriza a declarar implementada una funcionalidad que solamente haya si
 
 Un incremento funcional demostrable deberá permitir ejecutar un proceso completo, incluyendo autorización, persistencia y respuesta observable.
 
-Una pantalla estática podrá apoyar una evaluación de usabilidad, pero no demostrará integración con el backend.
+Un prototipo interactivo exclusivamente de navegador, como `prototype/index.html`, puede apoyar la revisión de flujos y una futura evaluación de usabilidad, pero no demuestra integración con el backend, autenticación segura ni transacciones sobre PostgreSQL.
 
 Cuando se evalúen transacciones, concurrencia o auditoría, será necesario comprobar también el estado persistido.
 
@@ -488,6 +491,7 @@ Cuando se evalúen transacciones, concurrencia o auditoría, será necesario com
 | Seguridad | Permisos y mecanismos definidos. | Controles evaluados mediante pruebas. | Facultades y concesiones aprobadas. |
 | Interfaces | Entradas, salidas y errores especificados. | Contratos implementados y comprobados. | Visibilidad y permisos confirmados. |
 | Validación | Procedimientos y criterios definidos. | Ejecuciones y resultados disponibles. | Aceptación del alcance por los responsables pertinentes. |
+| Prototipo interactivo | Flujos y limitaciones de la simulación descritos. | Navegación local demostrable; no equivale a pruebas del backend. | No representa aceptación institucional. |
 
 Las tres formas de aceptación son diferentes.
 
@@ -516,6 +520,7 @@ El avance deberá informarse mediante resultados identificables, diferenciando l
 | Tipo de avance | Ejemplo de comunicación |
 |---|---|
 | Documental | Contrato de resolución definido y enlazado. |
+| Demostración | Prototipo HTML interactivo disponible, sin integración real con C-API o PostgreSQL. |
 | Implementación | Ruta desarrollada e identificada en una revisión de código. |
 | Validación | T-LIFE-01 ejecutada con resultado y evidencia. |
 | Dependencia institucional | Matriz definitiva de permisos pendiente de aprobación. |
@@ -523,9 +528,9 @@ El avance deberá informarse mediante resultados identificables, diferenciando l
 
 Los ejemplos de implementación, validación e incidencia son ilustrativos y no representan resultados actuales.
 
-**En la Evaluación 2, el avance declarado corresponde a documentación de arquitectura y diseño.**
+**En la Evaluación 2, el avance declarado corresponde a documentación de arquitectura y diseño, más un prototipo HTML interactivo de demostración.**
 
-No se presentan funcionalidades ejecutables ni métricas de validación como trabajo realizado.
+No se presentan funcionalidades de backend implementadas ni métricas de validación técnica. Las interacciones del prototipo se ejecutan de forma local y simulada.
 
 ### 8.3. Indicadores de seguimiento
 
@@ -570,6 +575,7 @@ Para la Evaluación 2, el cierre documental requiere:
 8. Plan de validación con criterios observables.
 9. Riesgos, decisiones abiertas y backlog trazables.
 10. Estado real de implementación y validación declarado correctamente.
+11. Prototipo HTML interactivo presentado con su alcance y limitaciones.
 
 El cierre técnico de una futura implementación exigirá ejecutar pruebas, demostrar los controles correspondientes y tratar las fallas identificadas.
 
@@ -591,8 +597,9 @@ El siguiente trabajo, si se acuerda una fase de desarrollo, consistirá en asign
 - [Security Design](design/security.md)
 - [Validation Plan](validation/test-plan.md)
 - [Validation Findings](validation/findings.md)
+- [Prototipo interactivo y limitaciones](../../prototype/README.md)
 - [Traceability Matrix](traceability.md)
 
 Este documento consolida el estado documental de DH-01, los riesgos, las decisiones pendientes y una secuencia técnica propuesta para una eventual implementación.
 
-La Evaluación 2 presenta una **arquitectura documentada y justificable**, sin atribuir al proyecto funcionalidades desarrolladas, pruebas ejecutadas ni aprobaciones institucionales que todavía no existen.
+La Evaluación 2 presenta una **arquitectura documentada y justificable**, acompañada de un **prototipo HTML interactivo de demostración**, sin atribuir al proyecto un backend implementado, pruebas técnicas ejecutadas ni aprobaciones institucionales inexistentes.
